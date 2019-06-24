@@ -756,8 +756,8 @@ def create_has_tables(cnxn, crsr):
     SQLstring += "code                   VARCHAR(255) NULL, "
     SQLstring += "term                   VARCHAR(255) NULL, "
     SQLstring += "label                  VARCHAR(255) NULL, "
-    SQLstring += "note                   VARCHAR(512) NULL, "
-    SQLstring += "category               VARCHAR(512) NOT NULL, "
+    SQLstring += "concept_note           VARCHAR(255) NULL, "   # MS Access doesn't support a column called 'note'
+    SQLstring += "category               VARCHAR(255) NOT NULL, "
     SQLstring += "created                DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
@@ -788,10 +788,10 @@ def create_has_tables(cnxn, crsr):
     SQLstring += "death_datetime        DATETIME NULL, "
     SQLstring += "deceased_flag         INTEGER NULL, "
     SQLstring += "postcode              VARCHAR(25) NULL, "
-    SQLstring += "zone                  VARCHAR(255) NULL, "
+    SQLstring += "patient_zone          VARCHAR(255) NULL, "   # MS Access doesn't support a column called 'zone'
     SQLstring += "health_identifier     VARCHAR(255) NULL, "
     SQLstring += "alt_health_identifier VARCHAR(255) NULL, "
-    SQLstring += "project_code          VARCHAR(100) NULL DEFAULT 'GOSH DRE', "
+    SQLstring += "project_code          VARCHAR(100) NULL DEFAULT GOSH_DRE, "   # MS Access doesn't support a DEFAULT text with a space.
     SQLstring += "created               DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
@@ -821,7 +821,7 @@ def create_has_tables(cnxn, crsr):
     SQLstring += "event_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "start_date            DATETIME NULL, "
     SQLstring += "end_date              DATETIME NULL, "
-    SQLstring += "note                  VARCHAR(512) NULL, "
+    SQLstring += "event_note            VARCHAR(255) NULL, "  # MS Access doesn't support a column called 'note'
     SQLstring += "created               DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
@@ -1757,7 +1757,7 @@ def main():
 
     # create_has_tables(rep_cnxn, rep_crsr)
 
-    # runTests(rep_cnxn, rep_crsr)
+    runTests(rep_cnxn, rep_crsr)
 
     # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 999999)
 
@@ -1771,11 +1771,11 @@ def main():
 
     # CreateLabEvents(rep_cnxn, rep_crsr)
 
-    create_reporting_attributes(rep_cnxn, rep_crsr)
+    # create_reporting_attributes(rep_cnxn, rep_crsr)
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
-    CreateHASCSVFiles(rep_cnxn, rep_crsr, destination_folder)
+    # CreateHASCSVFiles(rep_cnxn, rep_crsr, destination_folder)
 
     rep_cnxn.close()
     res_cnxn.close()
