@@ -178,16 +178,16 @@ def drop_table(cnxn, crsr, table_name):
             cnxn.commit()
             break
 
-def GetConceptID(cnxn, crsr, concept_type, code, label, concept_value_type = ""):
+def GetConceptID(cnxn, crsr, category, code, label, value_type_concept_id = ""):
     '''
     Gets Concept id
     If it doesn't exist then adds it.
     :param cnxn: ODBC Connection
     :param crsr: ODBC Cursor
-    :param concept_type: String
+    :param category: String
     :param code: string
     :param label: string
-    :param concept_value_type: string
+    :param value_type_concept_id: string
     :return: integer
     '''
 
@@ -196,7 +196,7 @@ def GetConceptID(cnxn, crsr, concept_type, code, label, concept_value_type = "")
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
-    SQLstring += "  concept_type = '" + concept_type + "' "
+    SQLstring += "  category = '" + category + "' "
     SQLstring += "  AND code = '" + code + "'"
     SQLstring += ";"
 
@@ -209,14 +209,14 @@ def GetConceptID(cnxn, crsr, concept_type, code, label, concept_value_type = "")
 
         SQLinsert = "INSERT INTO ha_concepts "
 
-        if len(concept_value_type) == 0:
-            SQLinsert += "  (concept_type, code, label) "
+        if len(value_type_concept_id) == 0:
+            SQLinsert += "  (category, code, label) "
             SQLinsert += "VALUES "
-            SQLinsert += "  ('" + concept_type + "', '" + code + "', " + return_null_string(label) + ")"
+            SQLinsert += "  ('" + category + "', '" + code + "', " + return_null_string(label) + ")"
         else:
-            SQLinsert += "  (concept_type, code, label, concept_value_type) "
+            SQLinsert += "  (category, code, label, value_type_concept_id) "
             SQLinsert += "VALUES "
-            SQLinsert += "  ('" + concept_type + "', '" + code + "', " + return_null_string(label) + ", '" + concept_value_type + "')"
+            SQLinsert += "  ('" + category + "', '" + code + "', " + return_null_string(label) + ", '" + value_type_concept_id + "')"
 
         SQLinsert += ";"
 
@@ -233,13 +233,13 @@ def GetConceptID(cnxn, crsr, concept_type, code, label, concept_value_type = "")
     else:
         return 0
 
-def GetStaffID(cnxn, crsr, staff_type_id, staff_code, surname):
+def GetStaffID(cnxn, crsr, staff_type_concept_id, staff_code, surname):
     '''
     Gets Staff id
     If person doesn't exist then add them.
     :param cnxn: ODBC Connection
     :param crsr: ODBC Cursor
-    :param staff_type_id: Integer
+    :param staff_type_concept_id: Integer
     :param staff_code: String
     :param surname: String
     :return: Integer
@@ -250,7 +250,7 @@ def GetStaffID(cnxn, crsr, staff_type_id, staff_code, surname):
     SQLstring += "FROM "
     SQLstring += "  ha_staff "
     SQLstring += "WHERE "
-    SQLstring += "  staff_type_id = " + str(staff_type_id) + " "
+    SQLstring += "  staff_type_concept_id = " + str(staff_type_concept_id) + " "
     SQLstring += "  AND staff_code = '" + staff_code + "'"
     SQLstring += ";"
 
@@ -262,9 +262,9 @@ def GetStaffID(cnxn, crsr, staff_type_id, staff_code, surname):
     if not row:
 
         SQLinsert = "INSERT INTO ha_staff "
-        SQLinsert += "  (staff_type_id, staff_code, surname) "
+        SQLinsert += "  (staff_type_concept_id, staff_code, surname) "
         SQLinsert += "VALUES "
-        SQLinsert += "  (" + str(staff_type_id) + ", '" + staff_code + "', " + return_null_string(surname) + ")"
+        SQLinsert += "  (" + str(staff_type_concept_id) + ", '" + staff_code + "', " + return_null_string(surname) + ")"
         SQLinsert += ";"
 
         crsr.execute(SQLinsert)
@@ -280,7 +280,7 @@ def GetStaffID(cnxn, crsr, staff_type_id, staff_code, surname):
     else:
         return 0
 
-def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_name = None, surname = None, sex = None, birth_date = None, death_date = None):
+def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_name = None, surname = None, sex = None, birth_datetime = None, death_datetime = None):
     '''
     Gets Patient id
     If person doesn't exist then add them.
@@ -291,7 +291,7 @@ def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_nam
     :param first_name: String
     :param surname: String
     :param sex: String
-    :param bith_date: Date
+    :param bith_datetime: Date
     :return: Integer
     '''
 
@@ -343,11 +343,11 @@ def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_nam
         if include_identifiers:
 
             SQLinsert = "INSERT INTO ha_patients "
-            SQLinsert += "  ( health_identifier,  alt_health_identifier, surname, first_name, sex, birth_date, death_date) "
+            SQLinsert += "  ( health_identifier,  alt_health_identifier, surname, first_name, sex, birth_datetime, death_datetime) "
             SQLinsert += "VALUES "
             SQLinsert += "("
             SQLinsert += return_null_string(health_identifier) + ", " +  return_null_string(alt_health_identifier) + ", " + return_null_string(surname)
-            SQLinsert += ", " + return_null_string(first_name) + ", " +  return_null_string(sex) + ", " + return_null_date(birth_date) + ", " + return_null_date(death_date)
+            SQLinsert += ", " + return_null_string(first_name) + ", " +  return_null_string(sex) + ", " + return_null_date(birth_datetime) + ", " + return_null_date(death_datetime)
             SQLinsert += ")"
             SQLinsert += ";"
 
@@ -374,13 +374,13 @@ def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_nam
     else:
         return 0
 
-def GetEventID(cnxn, crsr, event_type_id, patient_id, start_date, staff_id = None, parent_event_id = None):
+def GetEventID(cnxn, crsr, event_type_concept_id, patient_id, start_date, staff_id = None, parent_event_id = None):
     '''
     Gets Concept id
     If it doesn't exist then adds it.
     :param cnxn: ODBC Connection
     :param crsr: ODBC Cursor
-    :param event_type_id: Integer
+    :param event_type_concept_id: Integer
     :param patient_id: Integer
     :param start_date: Date
     :param staff_id: Integer (Optional)
@@ -389,10 +389,10 @@ def GetEventID(cnxn, crsr, event_type_id, patient_id, start_date, staff_id = Non
     '''
 
     SQLinsert = "INSERT INTO ha_events "
-    SQLinsert += "  (event_type_id, patient_id, start_date, staff_id, parent_event_id) "
+    SQLinsert += "  (event_type_concept_id, patient_id, start_date, staff_id, parent_event_id) "
     SQLinsert += "VALUES "
     SQLinsert += "("
-    SQLinsert += return_null_number(event_type_id) + ", " + return_null_number(patient_id) + ", " + return_null_datetime(start_date)
+    SQLinsert += return_null_number(event_type_concept_id) + ", " + return_null_number(patient_id) + ", " + return_null_datetime(start_date)
     SQLinsert += ", " + return_null_number(staff_id) + ", " + return_null_number(parent_event_id)
     SQLinsert += ")"
     SQLinsert += ";"
@@ -411,7 +411,7 @@ def GetEventID(cnxn, crsr, event_type_id, patient_id, start_date, staff_id = Non
     else:
         return 0
 
-def GetEventAttributeID(cnxn, crsr, event_id, concept_type, code):
+def GetEventAttributeID(cnxn, crsr, event_id, category, code):
     '''
     Gets Event Attribute id
     :param cnxn: ODBC Connection
@@ -426,7 +426,7 @@ def GetEventAttributeID(cnxn, crsr, event_id, concept_type, code):
     SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_id "
     SQLstring += r"WHERE "
     SQLstring += r"  EA.event_id = " + return_null_number(event_id) + " "
-    SQLstring += r"  AND CO.concept_type = " + return_null_string(concept_type) + " "
+    SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
     SQLstring += r"  AND CO.code = " + return_null_string(code) + " "
     SQLstring += r";"
 
@@ -435,7 +435,7 @@ def GetEventAttributeID(cnxn, crsr, event_id, concept_type, code):
     return crsr.fetchone()
 
 
-def CountPatientEventID(cnxn, crsr, patient_id, concept_type, code, value_code = None):
+def CountPatientEventID(cnxn, crsr, patient_id, category, code, value_code = None):
     '''
     Gets Event Attribute id
     :param cnxn: ODBC Connection
@@ -449,14 +449,14 @@ def CountPatientEventID(cnxn, crsr, patient_id, concept_type, code, value_code =
     SQLstring += r"FROM "
     SQLstring += r"  ( "
     SQLstring += r"    ( "
-    SQLstring += r"       ha_events AS EV INNER JOIN ha_concepts AS CO_EV ON EV.event_type_id = CO_EV.concept_id "
+    SQLstring += r"       ha_events AS EV INNER JOIN ha_concepts AS CO_EV ON EV.event_type_concept_id = CO_EV.concept_id "
     SQLstring += r"    ) "
     SQLstring += r"    INNER JOIN ha_event_attributes AS EA ON EV.event_id = EA.event_id "
     SQLstring += r"  ) "
     SQLstring += r"  INNER JOIN ha_concepts AS CO_EA ON EA.value_id = CO_EA.concept_id "
     SQLstring += r"WHERE "
     SQLstring += r"  EV.patient_id = " + return_null_number(patient_id) + " "
-    SQLstring += r"  AND CO_EV.concept_type = " + return_null_string(concept_type) + " "
+    SQLstring += r"  AND CO_EV.category = " + return_null_string(category) + " "
     SQLstring += r"  AND CO_EV.code = " + return_null_string(code) + " "
     if value_code != None:
         SQLstring += r"  AND CO_EA.code LIKE '" + value_code + "%' "
@@ -601,11 +601,11 @@ def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, at
                 code = value
 
         if event_type_label.find("\\tbl") > 0:
-            concept_type = "\\Event Attribute Type\\" + event_type_label[:event_type_label.find("\\tbl")] + "\\Look Up\\" + attribute_label
+            category = "\\Event Attribute Type\\" + event_type_label[:event_type_label.find("\\tbl")] + "\\Look Up\\" + attribute_label
         else:
-            concept_type = "\\Event Attribute Type\\" + event_type_label + "\\Look Up\\" + attribute_label
+            category = "\\Event Attribute Type\\" + event_type_label + "\\Look Up\\" + attribute_label
 
-        value_id = GetConceptID(cnxn, crsr, concept_type, code, label, "VL")
+        value_id = GetConceptID(cnxn, crsr, category, code, label, "VL")
 
         SQLinsert += ", " + return_null_number(value_id)
 
@@ -842,16 +842,17 @@ def create_has_tables(cnxn, crsr):
     crsr.execute(SQLstring)
     cnxn.commit()
 
+    # Create basic concepts required for all further processes
 
 def runTests(cnxn, crsr):
 
     # Get staff type ID for consultants
-    staff_type_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
+    staff_type_concept_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
 
-    print(staff_type_id)
+    print(staff_type_concept_id)
 
     # Get staff ID for a consultant
-    staff_id = GetStaffID(cnxn, crsr, staff_type_id, "CN99999", "Booth")
+    staff_id = GetStaffID(cnxn, crsr, staff_type_concept_id, "CN99999", "Booth")
 
     print(staff_id)
 
@@ -880,9 +881,9 @@ def runTests(cnxn, crsr):
     print(patient_id)
 
     # Get event type ID for post mortem
-    event_type_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
+    event_type_concept_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
 
-    event_id = GetEventID(cnxn, crsr, event_type_id, patient_id, datetime.datetime.now())
+    event_id = GetEventID(cnxn, crsr, event_type_concept_id, patient_id, datetime.datetime.now())
     print(event_id)
 
     AddPatientAttribute(cnxn, crsr, patient_id, "AC", "Age Category", "ID", "6", "Adult")
@@ -1185,14 +1186,14 @@ def CreateAttributeFromAttribute(cnxn, crsr):
     SQLstring += "  value_numeric, "
     SQLstring += "  value_date, "
     SQLstring += "  value_id, "
-    SQLstring += "  concept_value_type, "
+    SQLstring += "  value_type_concept_id, "
     SQLstring += "  code, "
     SQLstring += "  label "
     SQLstring += "FROM ha_event_attributes "
     SQLstring += "  LEFT OUTER JOIN ha_concepts "
     SQLstring += "    ON ha_concepts.concept_id = ha_event_attributes.value_id "
     SQLstring += "WHERE "
-    SQLstring += "  (ha_concepts.concept_type = '\Event Attribute Type\Post Mortem\Look Up\COD2_COD2ID') "
+    SQLstring += "  (ha_concepts.category = '\Event Attribute Type\Post Mortem\Look Up\COD2_COD2ID') "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -1380,9 +1381,9 @@ def create_reporting_attributes(cnxn, crsr):
     SQLstring += "  ha_events AS EV "
     SQLstring += "  INNER JOIN "
     SQLstring += "    ha_concepts AS CO "
-    SQLstring += "      ON EV.event_type_id = CO.concept_id "
+    SQLstring += "      ON EV.event_type_concept_id = CO.concept_id "
     SQLstring += "WHERE "
-    SQLstring += "  CO.concept_type = '\Event Type' "
+    SQLstring += "  CO.category = '\Event Type' "
     SQLstring += "  AND CO.code = 'PM' "
     SQLstring += ";"
 
@@ -1403,49 +1404,49 @@ def create_reporting_attributes(cnxn, crsr):
         if row >= start_row:
 
             #Defined as having a External exam if Body weight is greater than 0
-            concept_type = r"\Event Attribute Type\Post Mortem\tblExternalExams"
+            category = r"\Event Attribute Type\Post Mortem\tblExternalExams"
             code = r"BodyWeight"
 
-            event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, concept_type, code)
+            event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
                 AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "ExternalExam", "External Examination", "TF", 1)
 
             # Defined as having a Internal exam if Heart weight is greater than 0
-            concept_type = r"\Event Attribute Type\Post Mortem\tblInternalExams"
+            category = r"\Event Attribute Type\Post Mortem\tblInternalExams"
             code = r"HeartWeight"
 
-            event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, concept_type, code)
+            event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
                 AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "InternalExam", "Internal Examination", "TF", 1)
 
             # Get number of samples taken
-            concept_type = r"\Event Type"
+            category = r"\Event Type"
             code = r"ST"
 
-            events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, concept_type, code)
+            events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code)
 
             if events > 0:
                 #Get number of samples
                 AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "SAMPLETKN", "Samples Taken", "IN", events)
 
                 # Defined as having Microbiology if any Test Sets B*
-                concept_type = r"\Event Type"
+                category = r"\Event Type"
                 code = r"LT"
                 value_code = r"B"
 
-                events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, concept_type, code, value_code)
+                events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code, value_code)
 
                 if events != None:
                     AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "MICRO", "Microbiology Tests", "TF", 1)
 
                 # Defined as having Microbiology if any Test Sets B*
-                concept_type = r"\Event Type"
+                category = r"\Event Type"
                 code = r"LT"
                 value_code = r"V"
 
-                events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, concept_type, code, value_code)
+                events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code, value_code)
 
                 if events != None:
                     AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "VIROLOGY", "Virology Tests", "TF", 1)
@@ -1478,9 +1479,9 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
     ReportTableFieldRows = crsr.fetchall()
 
     # Get event type ID for post mortem
-    event_type_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
+    event_type_concept_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
     # Get staff type ID for consultants
-    staff_type_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
+    staff_type_concept_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
 
     #Before you can create an event you need the patient and the member of staff
 
@@ -1532,7 +1533,7 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
         row += 1
 
         #Get staff_id
-        staff_id = GetStaffID(cnxn, crsr, staff_type_id, str(CaseRow.PathologistsID), CaseRow.PathologistsText)
+        staff_id = GetStaffID(cnxn, crsr, staff_type_concept_id, str(CaseRow.PathologistsID), CaseRow.PathologistsText)
 
         #Get patient_id
         patient_id = GetPatientID(cnxn, crsr, CaseRow.HospitalNo, CaseRow.PMNumber, CaseRow.FirstName, CaseRow.Surname, CaseRow.Sex, CaseRow.DateBirth, CaseRow.DateDeath)
@@ -1570,10 +1571,10 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
             else:
                 event_start_date = datetime.datetime(event_year, 12, 1, 12, 0)
 
-        # Print(event_type_id, lngStaff_id, lngPatient_id, datEvent_start_date, lngAgeCategory, strAgeCategory, intYear)
+        # Print(event_type_concept_id, lngStaff_id, lngPatient_id, datEvent_start_date, lngAgeCategory, strAgeCategory, intYear)
 
         #Get event_id
-        event_id = GetEventID(cnxn, crsr, event_type_id, patient_id, event_start_date, staff_id )
+        event_id = GetEventID(cnxn, crsr, event_type_concept_id, patient_id, event_start_date, staff_id )
 
         #Add Event Attributes
         #Do we need some sort of code & alt code on Event?
