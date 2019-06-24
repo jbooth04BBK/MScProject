@@ -4,7 +4,7 @@ MSC Project code - PM Research Database
 ### Create_HAS_Tables.py
 #### create_has_tables
 * DROPs and CREATEs HAS Tables in Staging database
-####runTests
+#### runTests
 * GetConceptID
 * GetStaffID
 * GetPatientID
@@ -15,10 +15,11 @@ MSC Project code - PM Research Database
 * BuildEventsSQL
 * GetAgeCategory
 * GetPMYear
-####CreateEvents
-####CreateAttributeFromAttributes
-####CreateAttributeNoOfAttributes
-####CreateLabEvents
-####create_reporting_attributes
-####CreateHASCSVFiles
+
+#### CreateEvents
+#### CreateAttributeFromAttributes
+#### CreateAttributeNoOfAttributes
+#### CreateLabEvents
+#### create_reporting_attributes
+#### CreateHASCSVFiles
 
