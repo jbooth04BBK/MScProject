@@ -731,6 +731,16 @@ def BuildEventsSQL(cnxn, crsr, ReportTableID, SystemTableID, SystemTableName, Ca
 
 def create_has_tables(cnxn, crsr):
 
+    '''
+
+    :param cnxn: Connection to database
+    :param crsr: Cursor for all SQL operations
+
+    Comments:   Creates HAS tables in ACCESS DB
+                Currently at HAS 1.08
+                This is not a complete HAS implementation; just the tables required for this project.
+    '''
+
     drop_table(cnxn, crsr, "ha_event_attributes")
     drop_table(cnxn, crsr, "ha_events")
     drop_table(cnxn, crsr, "ha_patient_attributes")
@@ -739,28 +749,31 @@ def create_has_tables(cnxn, crsr):
     drop_table(cnxn, crsr, "ha_concepts")
 
     SQLstring = "CREATE TABLE ha_concepts ( "
-    SQLstring += "concept_id         AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "concept_uri        VARCHAR(255) NULL, "
-    SQLstring += "code               VARCHAR(255) NULL, "
-    SQLstring += "label              VARCHAR(255) NULL, "
-    SQLstring += "term               VARCHAR(255) NULL, "
-    SQLstring += "concept_type       VARCHAR(255) NOT NULL, "
-    SQLstring += "concept_value_type VARCHAR(2) NULL, "
-    SQLstring += "created            DATETIME DEFAULT NOW() NOT NULL "
+    SQLstring += "concept_id             AUTOINCREMENT PRIMARY KEY, "
+    SQLstring += "parent_concept_id      INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "value_type_concept_id  INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "concept_uri            VARCHAR(255) NULL, "
+    SQLstring += "code                   VARCHAR(255) NULL, "
+    SQLstring += "term                   VARCHAR(255) NULL, "
+    SQLstring += "label                  VARCHAR(255) NULL, "
+    SQLstring += "note                   VARCHAR(512) NULL, "
+    SQLstring += "category               VARCHAR(512) NOT NULL, "
+    SQLstring += "created                DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
 
     SQLstring = "CREATE TABLE ha_staff ( "
-    SQLstring += "staff_id      AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "staff_type_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "staff_code    VARCHAR(255) NULL, "
-    SQLstring += "first_name    VARCHAR(255) NULL, "
-    SQLstring += "middle_names  VARCHAR(255) NULL, "
-    SQLstring += "surname       VARCHAR(255) NULL, "
-    SQLstring += "start_date    DATE NULL, "
-    SQLstring += "end_date      DATE NULL, "
-    SQLstring += "created       DATETIME DEFAULT NOW() NOT NULL "
+    SQLstring += "staff_id              AUTOINCREMENT PRIMARY KEY, "
+    SQLstring += "staff_code            VARCHAR(100) NULL, "
+    SQLstring += "full_name             VARCHAR(100) NULL, "
+    SQLstring += "first_name            VARCHAR(50) NULL, "
+    SQLstring += "middle_names          VARCHAR(50) NULL, "
+    SQLstring += "surname               VARCHAR(50) NULL, "
+    SQLstring += "staff_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "start_date            DATETIME NULL, "
+    SQLstring += "end_date              DATETIME NULL, "
+    SQLstring += "created               DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
@@ -771,27 +784,31 @@ def create_has_tables(cnxn, crsr):
     SQLstring += "middle_names          VARCHAR(255) NULL, "
     SQLstring += "surname               VARCHAR(255) NULL, "
     SQLstring += "sex                   VARCHAR(1) NULL, "
-    SQLstring += "birth_date            DATE NULL, "
-    SQLstring += "death_date            DATE NULL, "
+    SQLstring += "birth_datetime        DATETIME NULL, "
+    SQLstring += "death_datetime        DATETIME NULL, "
+    SQLstring += "deceased_flag         INTEGER NULL, "
     SQLstring += "postcode              VARCHAR(25) NULL, "
-    SQLstring += "geographic_zone       VARCHAR(255) NULL, "
+    SQLstring += "zone                  VARCHAR(255) NULL, "
     SQLstring += "health_identifier     VARCHAR(255) NULL, "
     SQLstring += "alt_health_identifier VARCHAR(255) NULL, "
+    SQLstring += "project_code          VARCHAR(100) NULL DEFAULT 'GOSH DRE', "
     SQLstring += "created               DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
 
-
     SQLstring = "CREATE TABLE ha_patient_attributes ( "
-    SQLstring += "patient_attribute_id      AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "patient_id                INTEGER NOT NULL REFERENCES ha_patients(patient_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "patient_attribute_type_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "value_text                VARCHAR(255) NULL, "
-    SQLstring += "value_numeric             DECIMAL(18,4) NULL, "
-    SQLstring += "value_date                DATETIME NULL, "
-    SQLstring += "value_id                  INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "created                   DATETIME DEFAULT NOW() NOT NULL "
+    SQLstring += "patient_attribute_id              AUTOINCREMENT PRIMARY KEY, "
+    SQLstring += "parent_patient_attribute_id       INTEGER NOT NULL REFERENCES ha_patient_attributes(patient_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "patient_id                        INTEGER NOT NULL REFERENCES ha_patients(patient_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "patient_attribute_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "sequence_number                   INTEGER NULL, "
+    SQLstring += "value_text                        VARCHAR(255) NULL, "
+    SQLstring += "value_numeric                     DECIMAL(18,4) NULL, "
+    SQLstring += "value_datetime                    DATETIME NULL, "
+    SQLstring += "value_boolean                     INTEGER NULL, "
+    SQLstring += "value_concept_id                  INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "created                           DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
@@ -801,24 +818,26 @@ def create_has_tables(cnxn, crsr):
     SQLstring += "parent_event_id       INTEGER NULL REFERENCES ha_events(event_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "patient_id            INTEGER NULL REFERENCES ha_patients(patient_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "staff_id              INTEGER NULL REFERENCES ha_staff(staff_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "event_type_id         INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "start_date            DATE NULL, "
-    SQLstring += "end_date              DATE NULL, "
+    SQLstring += "event_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "start_date            DATETIME NULL, "
+    SQLstring += "end_date              DATETIME NULL, "
+    SQLstring += "note                  VARCHAR(512) NULL, "
     SQLstring += "created               DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
 
-
     SQLstring = "CREATE TABLE ha_event_attributes ( "
-    SQLstring += "event_attribute_id      AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "event_id                INTEGER NOT NULL REFERENCES ha_events(event_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "event_attribute_type_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "value_text              VARCHAR(255) NULL, "
-    SQLstring += "value_numeric           DECIMAL(18,4) NULL, "
-    SQLstring += "value_date              DATETIME NULL, "
-    SQLstring += "value_id                INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "created                 DATETIME DEFAULT NOW() NOT NULL "
+    SQLstring += "event_attribute_id              AUTOINCREMENT PRIMARY KEY, "
+    SQLstring += "parent_event_attribute_id       INTEGER NOT NULL REFERENCES ha_event_attributes(event_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "event_id                        INTEGER NOT NULL REFERENCES ha_events(event_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "event_attribute_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "sequence_number                 INTEGER NULL, "
+    SQLstring += "value_text                      VARCHAR(255) NULL, "
+    SQLstring += "value_numeric                   DECIMAL(18,4) NULL, "
+    SQLstring += "value_datetime                  DATETIME NULL, "
+    SQLstring += "value_concept_id                INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "created                         DATETIME DEFAULT NOW() NOT NULL "
     SQLstring += ");"
     crsr.execute(SQLstring)
     cnxn.commit()
