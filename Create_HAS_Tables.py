@@ -178,7 +178,7 @@ def drop_table(cnxn, crsr, table_name):
             cnxn.commit()
             break
 
-def GetConceptID(cnxn, crsr, category, code, label, value_type_concept_id = ""):
+def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_type_concept_id = 1):
     '''
     Gets Concept id
     If it doesn't exist then adds it.
@@ -196,6 +196,7 @@ def GetConceptID(cnxn, crsr, category, code, label, value_type_concept_id = ""):
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
+    SQLstring += "  parent_concept_id = " + parent_concept_id + " "
     SQLstring += "  category = '" + category + "' "
     SQLstring += "  AND code = '" + code + "'"
     SQLstring += ";"
@@ -208,16 +209,9 @@ def GetConceptID(cnxn, crsr, category, code, label, value_type_concept_id = ""):
     if not row:
 
         SQLinsert = "INSERT INTO ha_concepts "
-
-        if len(value_type_concept_id) == 0:
-            SQLinsert += "  (category, code, label) "
-            SQLinsert += "VALUES "
-            SQLinsert += "  ('" + category + "', '" + code + "', " + return_null_string(label) + ")"
-        else:
-            SQLinsert += "  (category, code, label, value_type_concept_id) "
-            SQLinsert += "VALUES "
-            SQLinsert += "  ('" + category + "', '" + code + "', " + return_null_string(label) + ", '" + value_type_concept_id + "')"
-
+        SQLinsert += "  (category, parent_concept_id, code, label, value_type_concept_id) "
+        SQLinsert += "VALUES "
+        SQLinsert += "  ('" + category + ", " + str(parent_concept_id) + "', '" + code + "', " + return_null_string(label) + ", " + str(value_type_concept_id) + ")"
         SQLinsert += ";"
 
         crsr.execute(SQLinsert)
@@ -843,6 +837,22 @@ def create_has_tables(cnxn, crsr):
     cnxn.commit()
 
     # Create basic concepts required for all further processes
+
+def create_core_concepts(cnxn, crsr):
+    '''
+
+    :param cnxn: Connection to database
+    :param crsr: Cursor for all SQL operations
+
+    Comments:   Creates core concepts required for all other concepts
+    '''
+
+    value_type_concept_id = 1
+    parent_concept_id = value_type_concept_id
+
+    # Concept value type: concept
+    parent_concept_id = GetConceptID(cnxn, crsr, "\\", parent_concept_id, "Concept", "Concept", value_type_concept_id)
+
 
 def runTests(cnxn, crsr):
 
@@ -1758,7 +1768,9 @@ def main():
 
     # create_has_tables(rep_cnxn, rep_crsr)
 
-    runTests(rep_cnxn, rep_crsr)
+    create_core_concepts(rep_cnxn, rep_crsr)
+
+    # runTests(rep_cnxn, rep_crsr)
 
     # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 999999)
 
