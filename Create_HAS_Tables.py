@@ -196,8 +196,8 @@ def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_typ
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
-    SQLstring += "  parent_concept_id = " + parent_concept_id + " "
-    SQLstring += "  category = '" + category + "' "
+    SQLstring += "  parent_concept_id = " + str(parent_concept_id) + " "
+    SQLstring += "  AND category = '" + category + "' "
     SQLstring += "  AND code = '" + code + "'"
     SQLstring += ";"
 
@@ -211,7 +211,7 @@ def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_typ
         SQLinsert = "INSERT INTO ha_concepts "
         SQLinsert += "  (category, parent_concept_id, code, label, value_type_concept_id) "
         SQLinsert += "VALUES "
-        SQLinsert += "  ('" + category + ", " + str(parent_concept_id) + "', '" + code + "', " + return_null_string(label) + ", " + str(value_type_concept_id) + ")"
+        SQLinsert += "  ('" + category + "', " + str(parent_concept_id) + ", '" + code + "', " + return_null_string(label) + ", " + str(value_type_concept_id) + ")"
         SQLinsert += ";"
 
         crsr.execute(SQLinsert)
@@ -744,8 +744,9 @@ def create_has_tables(cnxn, crsr):
 
     SQLstring = "CREATE TABLE ha_concepts ( "
     SQLstring += "concept_id             AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "parent_concept_id      INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-    SQLstring += "value_type_concept_id  INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    # These should be NOT NULL but can't add self referential entry as first concept, added in next stage.
+    SQLstring += "parent_concept_id      INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "value_type_concept_id  INTEGER NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "concept_uri            VARCHAR(255) NULL, "
     SQLstring += "code                   VARCHAR(255) NULL, "
     SQLstring += "term                   VARCHAR(255) NULL, "
@@ -837,6 +838,45 @@ def create_has_tables(cnxn, crsr):
     cnxn.commit()
 
     # Create basic concepts required for all further processes
+def create_concept_id(cnxn, crsr):
+    '''
+    Adds initial concept which is self refferntial and then adds NOT NULL constraint.
+    :param cnxn: ODBC Connection
+    :param crsr: ODBC Cursor
+    '''
+
+    SQLstring = "INSERT INTO ha_concepts "
+    SQLstring += "  (category, parent_concept_id, code, label, value_type_concept_id) "
+    SQLstring += "VALUES "
+    SQLstring += "  ('\\', NULL, 'Concept', 'Concept', NULL)"
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    cnxn.commit()
+
+    SQLstring = "UPDATE ha_concepts "
+    SQLstring += "  SET parent_concept_id = 1, value_type_concept_id = 1 "
+    SQLstring += "WHERE concept_id = 1 "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    cnxn.commit()
+
+    # Add NOT NULL constraint to columns
+
+    SQLstring = "ALTER TABLE ha_concepts "
+    SQLstring += "  ALTER COLUMN parent_concept_id INTEGER NOT NULL"
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    cnxn.commit()
+
+    SQLstring = "ALTER TABLE ha_concepts "
+    SQLstring += "  ALTER COLUMN value_type_concept_id INTEGER NOT NULL"
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    cnxn.commit()
 
 def create_core_concepts(cnxn, crsr):
     '''
@@ -1767,6 +1807,9 @@ def main():
     res_crsr = res_cnxn.cursor()
 
     # create_has_tables(rep_cnxn, rep_crsr)
+
+    # ToDo Move to within create_has_tables - ditto create core concepts
+    # create_concept_id(rep_cnxn, rep_crsr)
 
     create_core_concepts(rep_cnxn, rep_crsr)
 

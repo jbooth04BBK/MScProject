@@ -29,21 +29,37 @@ rep_crsr = rep_cnxn.cursor()
 for table_info in rep_crsr.tables(tableType='TABLE'):
     print(table_info)
 
-drop_table(rep_cnxn, rep_crsr, "ha_concepts")
+# drop_table(rep_cnxn, rep_crsr, "ha_concepts")
+#
+# SQLstring = "CREATE TABLE ha_concepts ( "
+# SQLstring += "concept_id             AUTOINCREMENT PRIMARY KEY, "
+# SQLstring += "parent_concept_id      INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+# SQLstring += "value_type_concept_id  INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+# SQLstring += "concept_uri            VARCHAR(255) NULL, "
+# SQLstring += "code                   VARCHAR(255) NULL, "
+# SQLstring += "term                   VARCHAR(255) NULL, "
+# SQLstring += "label                  VARCHAR(255) NULL, "
+# # SQLstring += "note                   VARCHAR(255) NULL, "
+# SQLstring += "category               VARCHAR(255) NOT NULL, "
+# SQLstring += "created                DATETIME DEFAULT NOW() NOT NULL "
+# SQLstring += ");"
+# rep_crsr.execute(SQLstring)
+# rep_crsr.commit()
 
-SQLstring = "CREATE TABLE ha_concepts ( "
-SQLstring += "concept_id             AUTOINCREMENT PRIMARY KEY, "
-SQLstring += "parent_concept_id      INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-SQLstring += "value_type_concept_id  INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
-SQLstring += "concept_uri            VARCHAR(255) NULL, "
-SQLstring += "code                   VARCHAR(255) NULL, "
-SQLstring += "term                   VARCHAR(255) NULL, "
-SQLstring += "label                  VARCHAR(255) NULL, "
-# SQLstring += "note                   VARCHAR(255) NULL, "
-SQLstring += "category               VARCHAR(255) NOT NULL, "
-SQLstring += "created                DATETIME DEFAULT NOW() NOT NULL "
-SQLstring += ");"
+# Add NOT NULL constraint to column
+
+SQLstring = "ALTER TABLE ha_concepts "
+SQLstring += "  ALTER COLUMN parent_concept_id INTEGER NOT NULL"
+SQLstring += ";"
+
 rep_crsr.execute(SQLstring)
-rep_crsr.commit()
+rep_cnxn.commit()
+
+SQLstring = "ALTER TABLE ha_concepts "
+SQLstring += "  ALTER COLUMN value_type_concept_id INTEGER NOT NULL"
+SQLstring += ";"
+
+rep_crsr.execute(SQLstring)
+rep_cnxn.commit()
 
 rep_cnxn.close()
