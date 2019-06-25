@@ -178,7 +178,7 @@ def drop_table(cnxn, crsr, table_name):
             cnxn.commit()
             break
 
-def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_type_concept_id = 1):
+def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label = None, value_type_concept_id = 1):
     '''
     Gets Concept id
     If it doesn't exist then adds it.
@@ -196,8 +196,7 @@ def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_typ
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
-    SQLstring += "  parent_concept_id = " + str(parent_concept_id) + " "
-    SQLstring += "  AND category = '" + category + "' "
+    SQLstring += "  category = '" + category + "' "
     SQLstring += "  AND code = '" + code + "'"
     SQLstring += ";"
 
@@ -274,7 +273,7 @@ def GetStaffID(cnxn, crsr, staff_type_concept_id, staff_code, surname):
     else:
         return 0
 
-def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_name = None, surname = None, sex = None, birth_datetime = None, death_datetime = None):
+def GetPatientID(cnxn, crsr, alt_health_identifier, health_identifier, first_name = None, surname = None, sex = None, birth_datetime = None, death_datetime = None):
     '''
     Gets Patient id
     If person doesn't exist then add them.
@@ -285,7 +284,8 @@ def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_nam
     :param first_name: String
     :param surname: String
     :param sex: String
-    :param bith_datetime: Date
+    :param birth_datetime: DateTime
+    :param death_datetime: DateTime
     :return: Integer
     '''
 
@@ -333,6 +333,9 @@ def GetPatientID(cnxn, crsr, health_identifier, alt_health_identifier, first_nam
     if not row:
 
         include_identifiers = False
+
+        #ToDo could add birth & death datetime but chnaged to the 1st of the month.
+        #ToDo shouldn't the health_identifier be ignored as well i.e. NHS Number
 
         if include_identifiers:
 
@@ -848,7 +851,7 @@ def create_concept_id(cnxn, crsr):
     SQLstring = "INSERT INTO ha_concepts "
     SQLstring += "  (category, parent_concept_id, code, label, value_type_concept_id) "
     SQLstring += "VALUES "
-    SQLstring += "  ('\\', NULL, 'Concept', 'Concept', NULL)"
+    SQLstring += "  ('/', NULL, 'Concept', 'Concept', NULL)"
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -890,20 +893,73 @@ def create_core_concepts(cnxn, crsr):
     value_type_concept_id = 1
     parent_concept_id = value_type_concept_id
 
-    # Concept value type: concept
-    parent_concept_id = GetConceptID(cnxn, crsr, "\\", parent_concept_id, "Concept", "Concept", value_type_concept_id)
+    # Concept value type: ValueType
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Concept", parent_concept_id, "ValueType", "Value Type", value_type_concept_id)
+
+    # Concept value type: Integer
+    value_type_integer = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "INTEGER", "Integer", value_type_concept_id)
+
+    # Concept value type: Float
+    value_type_float = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "FLOAT", "Float", value_type_concept_id)
+
+    # Concept value type: Date
+    value_type_date = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "DATE", "Date", value_type_concept_id)
+
+    # Concept value type: Time
+    value_type_time = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "TIME", "Time", value_type_concept_id)
+
+    # Concept value type: DateTime
+    value_type_datetime = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "DATETIME", "DateTime", value_type_concept_id)
+
+    # Concept value type: Text
+    value_type_text = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "TEXT", "Text", value_type_concept_id)
+
+    # Concept value type: Boolean
+    value_type_boolean = GetConceptID(cnxn, crsr, "/Concept/ValueType", parent_concept_id, "BOOLEAN", "Boolean", value_type_concept_id)
+
+    #------------------------------------------------
+    #--Staff Types and values
+    #------------------------------------------------
+
+    parent_concept_id = value_type_concept_id
+
+    # Concept value type: Staff
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Concept", parent_concept_id, "Staff", "Staff", value_type_concept_id)
+
+    # Concept value type: StaffType
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Staff", parent_concept_id, "StaffType", "StaffType", value_type_concept_id)
+
+    # Concept value type: Consulatnt
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Staff/StaffType", parent_concept_id, "Consultant", "Consultant", value_type_concept_id)
+
+
+    #------------------------------------------------
+    #--Event Types and values
+    #------------------------------------------------
+
+    parent_concept_id = value_type_concept_id
+
+    # Concept value type: Event
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Concept", parent_concept_id, "Event", "Event", value_type_concept_id)
+
+    # Concept value type: Observation
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Event", parent_concept_id, "Observation", "Observation", value_type_concept_id)
+
+    # Concept value type: Post Mortem
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation", parent_concept_id, "PostMortem", "Post Mortem", value_type_concept_id)
+
 
 
 def runTests(cnxn, crsr):
 
     # Get staff type ID for consultants
-    staff_type_concept_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
-
-    print(staff_type_concept_id)
+    staff_type_concept_id = GetConceptID(cnxn, crsr, "/Staff/StaffType", None, "Consultant")
 
     # Get staff ID for a consultant
     staff_id = GetStaffID(cnxn, crsr, staff_type_concept_id, "CN99999", "Booth")
-
+    print(staff_id)
+    # Check for no duplication
+    staff_id = GetStaffID(cnxn, crsr, staff_type_concept_id, "CN99999", "Booth")
     print(staff_id)
 
     # Get patient ID
@@ -931,32 +987,32 @@ def runTests(cnxn, crsr):
     print(patient_id)
 
     # Get event type ID for post mortem
-    event_type_concept_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
+    event_type_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation", None, "PostMortem")
 
     event_id = GetEventID(cnxn, crsr, event_type_concept_id, patient_id, datetime.datetime.now())
     print(event_id)
 
-    AddPatientAttribute(cnxn, crsr, patient_id, "AC", "Age Category", "ID", "6", "Adult")
-    AddPatientAttribute(cnxn, crsr, patient_id, "AG", "Age In Years", "IN", 62)
-
-    AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "CASEID", "Case ID", "IN", 1001)
-    AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "PMNumber", "PM Number", "TX", "17P564")
-    AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "REF", "Referral", "ID", "1", "Sudden Death < 12 months")
-    AddEventAttribute(cnxn, crsr, event_id, "Post Mortem", "NA", "Number of Attributes", "ID", "1", "Less than 10")
-
-
-    SQLstring = BuildEventsSQL(cnxn, crsr, 5, 77, "tblCardiovascularSystems", 1)
-    crsr.execute(SQLstring)
-    row = crsr.fetchone()
-
-    print(row.PMNumber)  # Should be 00P001
-
-    print(GetAgeCategory(None,234,""))
-    print(GetAgeCategoryID(None,234,""))
-    print(GetPMYear("95P000"))
-    print(GetPMYear("21P000"))
-    print(GetPMYear("18P000"))
-    print(GetPMYear("9P5000"))
+    # AddPatientAttribute(cnxn, crsr, patient_id, "AC", "Age Category", "ID", "6", "Adult")
+    # AddPatientAttribute(cnxn, crsr, patient_id, "AG", "Age In Years", "IN", 62)
+    #
+    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "CASEID", "Case ID", "IN", 1001)
+    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "PMNumber", "PM Number", "TX", "17P564")
+    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "REF", "Referral", "ID", "1", "Sudden Death < 12 months")
+    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem", "NA", "Number of Attributes", "ID", "1", "Less than 10")
+    #
+    #
+    # SQLstring = BuildEventsSQL(cnxn, crsr, 5, 77, "tblCardiovascularSystems", 1)
+    # crsr.execute(SQLstring)
+    # row = crsr.fetchone()
+    #
+    # print(row.PMNumber)  # Should be 00P001
+    #
+    # print(GetAgeCategory(None,234,""))
+    # print(GetAgeCategoryID(None,234,""))
+    # print(GetPMYear("95P000"))
+    # print(GetPMYear("21P000"))
+    # print(GetPMYear("18P000"))
+    # print(GetPMYear("9P5000"))
 
 def CreateHASCSVFiles(cnxn: object, crsr: object, destination_folder):
     '''
@@ -1813,7 +1869,7 @@ def main():
 
     create_core_concepts(rep_cnxn, rep_crsr)
 
-    # runTests(rep_cnxn, rep_crsr)
+    runTests(rep_cnxn, rep_crsr)
 
     # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 999999)
 
