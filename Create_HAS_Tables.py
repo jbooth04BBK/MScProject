@@ -420,7 +420,7 @@ def GetEventAttributeID(cnxn, crsr, event_id, category, code):
     SQLstring += r"  event_attribute_id "
     SQLstring += r"FROM ha_event_attributes AS EA"
     SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
-    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_id "
+    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id "
     SQLstring += r"WHERE "
     SQLstring += r"  EA.event_id = " + return_null_number(event_id) + " "
     SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
@@ -450,7 +450,7 @@ def CountPatientEventID(cnxn, crsr, patient_id, category, code, value_code = Non
     SQLstring += r"    ) "
     SQLstring += r"    INNER JOIN ha_event_attributes AS EA ON EV.event_id = EA.event_id "
     SQLstring += r"  ) "
-    SQLstring += r"  INNER JOIN ha_concepts AS CO_EA ON EA.value_id = CO_EA.concept_id "
+    SQLstring += r"  INNER JOIN ha_concepts AS CO_EA ON EA.value_concept_id = CO_EA.concept_id "
     SQLstring += r"WHERE "
     SQLstring += r"  EV.patient_id = " + return_null_number(patient_id) + " "
     SQLstring += r"  AND CO_EV.category = " + return_null_string(category) + " "
@@ -503,9 +503,9 @@ def AddPatientAttribute(cnxn, crsr, patient_id, attribute_code, attribute_label,
         elif value_type in ("IN", "FL", "NU", "TF"):
             SQLinsert += ", value_numeric"
         elif value_type == "ID":
-            SQLinsert += ", value_id"
+            SQLinsert += ", value_concept_id"
         elif value_type in ("DA", "DT", "TD", "TM"):
-            SQLinsert += ", value_date"
+            SQLinsert += ", value_datetime"
 
         SQLinsert += ") "
         SQLinsert += "VALUES "
@@ -527,8 +527,8 @@ def AddPatientAttribute(cnxn, crsr, patient_id, attribute_code, attribute_label,
                     code = ("000" + value)[-3:]
                 else:
                     code = value
-            value_id = GetConceptID(cnxn, crsr, "\\Patient Attribute Type\\" + attribute_label, code, label, "VL")
-            SQLinsert += ", " + return_null_number(value_id)
+            value_concept_id = GetConceptID(cnxn, crsr, "\\Patient Attribute Type\\" + attribute_label, code, label, "VL")
+            SQLinsert += ", " + return_null_number(value_concept_id)
         elif value_type == "DA":
             SQLinsert += ", " + return_null_date(value)
         elif value_type in ("DT", "TD", "TM"):
@@ -543,7 +543,7 @@ def AddPatientAttribute(cnxn, crsr, patient_id, attribute_code, attribute_label,
         cnxn.commit()
 
 
-def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, attribute_label, value_type, value, label=None):
+def AddEventAttribute(cnxn, crsr, event_id, event_type_category, attribute_code, attribute_label, value_type, value, label=None):
     '''
     :param cnxn: ODBC Connection
     :param crsr: ODBC Cursor
@@ -553,17 +553,42 @@ def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, at
     :param value_type: String
     :param value: Variant
     :param label: String Optional
+
+    AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "REF", "Referral", "ID", "1", "Sudden Death < 12 months")
+
     '''
 
     if gbl_add_profiling:
         start_time = time.time()
 
-    event_attribute_type_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\\" + event_type_label, attribute_code, attribute_label,
-                                             value_type)
+    if value_type == "TX":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "TEXT")
+    elif value_type == "IN":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "INTEGER")
+    elif value_type == "FL":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "FLOAT")
+    elif value_type == "ID":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+    elif value_type == "DA":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "DATE")
+    elif value_type == "DT":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "DATETIME")
+    elif value_type == "TM":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "TIME")
+    elif value_type == "TF":
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "BOOLEAN")
+
+    # What is the parent concept?
+    parent_category = event_type_category.rsplit("/",1)[0]
+    parent_code = event_type_category.rsplit("/",1)[1]
+
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/" + parent_category, None, parent_code)
+    event_attribute_type_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/" + event_type_category, parent_concept_id,
+                                             attribute_code, attribute_label,value_type_concept_id)
 
     SQLinsert = "INSERT INTO ha_event_attributes "
     SQLinsert += "("
-    SQLinsert += "event_attribute_type_id, event_id"
+    SQLinsert += "event_attribute_type_concept_id, event_id"
 
     if value_type == "TX":
         SQLinsert += ", value_text"
@@ -571,14 +596,14 @@ def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, at
         # NB value_text used for units - if given
         SQLinsert += ", value_numeric, value_text"
     elif value_type == "ID":
-        SQLinsert += ", value_id"
+        SQLinsert += ", value_concept_id"
     elif value_type in ("DA", "DT", "TD", "TM"):
-        SQLinsert += ", value_date"
+        SQLinsert += ", value_datetime"
 
     SQLinsert += ") "
     SQLinsert += "VALUES "
     SQLinsert += " ("
-    SQLinsert += return_null_number(event_attribute_type_id) + ", " + return_null_number(event_id)
+    SQLinsert += return_null_number(event_attribute_type_concept_id) + ", " + return_null_number(event_id)
 
     if value_type == "TX":
         SQLinsert += ", " + return_null_string(value)
@@ -597,14 +622,21 @@ def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, at
             else:
                 code = value
 
-        if event_type_label.find("\\tbl") > 0:
-            category = "\\Event Attribute Type\\" + event_type_label[:event_type_label.find("\\tbl")] + "\\Look Up\\" + attribute_label
+        if event_type_category.find("/tbl") > 0:
+            # cut out reference to table name for lookup
+            parent_category = "/EventAttribute/" + event_type_category[:event_type_category.find("/tbl")] + "/LookUp"
         else:
-            category = "\\Event Attribute Type\\" + event_type_label + "\\Look Up\\" + attribute_label
+            parent_category = "/EventAttribute/" + event_type_category + "/LookUp"
 
-        value_id = GetConceptID(cnxn, crsr, category, code, label, "VL")
+        category = parent_category + "/" + attribute_label
 
-        SQLinsert += ", " + return_null_number(value_id)
+        parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None,"PostMortem")
+        parent_concept_id = GetConceptID(cnxn, crsr, parent_category,
+                                         parent_concept_id, attribute_code, attribute_label, value_type_concept_id)
+
+        value_concept_id = GetConceptID(cnxn, crsr, category, parent_concept_id, code, label, value_type_concept_id)
+
+        SQLinsert += ", " + return_null_number(value_concept_id)
 
     elif value_type == "DA":
         SQLinsert += ", " + return_null_date(value)
@@ -619,7 +651,7 @@ def AddEventAttribute(cnxn, crsr, event_id, event_type_label, attribute_code, at
 
     if gbl_add_profiling:
         end_time = time.time()
-        # print(event_id, value_type, f' - Add Event Attribute: {end_time - start_time:.4f} secs', "\Event Attribute Type\\" + event_type_label, attribute_code, attribute_label)
+        # print(event_id, value_type, f' - Add Event Attribute: {end_time - start_time:.4f} secs', "\Event Attribute Type\\" + event_type_category, attribute_code, attribute_label)
 
 
 def BuildEventsSQL(cnxn, crsr, ReportTableID, SystemTableID, SystemTableName, CaseID = None):
@@ -797,7 +829,7 @@ def create_has_tables(cnxn, crsr):
 
     SQLstring = "CREATE TABLE ha_patient_attributes ( "
     SQLstring += "patient_attribute_id              AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "parent_patient_attribute_id       INTEGER NOT NULL REFERENCES ha_patient_attributes(patient_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "parent_patient_attribute_id       INTEGER NULL REFERENCES ha_patient_attributes(patient_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "patient_id                        INTEGER NOT NULL REFERENCES ha_patients(patient_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "patient_attribute_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "sequence_number                   INTEGER NULL, "
@@ -827,7 +859,7 @@ def create_has_tables(cnxn, crsr):
 
     SQLstring = "CREATE TABLE ha_event_attributes ( "
     SQLstring += "event_attribute_id              AUTOINCREMENT PRIMARY KEY, "
-    SQLstring += "parent_event_attribute_id       INTEGER NOT NULL REFERENCES ha_event_attributes(event_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
+    SQLstring += "parent_event_attribute_id       INTEGER NULL REFERENCES ha_event_attributes(event_attribute_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "event_id                        INTEGER NOT NULL REFERENCES ha_events(event_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "event_attribute_type_concept_id INTEGER NOT NULL REFERENCES ha_concepts(concept_id) ON UPDATE CASCADE ON DELETE CASCADE, "
     SQLstring += "sequence_number                 INTEGER NULL, "
@@ -841,6 +873,8 @@ def create_has_tables(cnxn, crsr):
     cnxn.commit()
 
     # Create basic concepts required for all further processes
+    create_concept_id(cnxn, crsr)
+
 def create_concept_id(cnxn, crsr):
     '''
     Adds initial concept which is self refferntial and then adds NOT NULL constraint.
@@ -890,7 +924,7 @@ def create_core_concepts(cnxn, crsr):
     Comments:   Creates core concepts required for all other concepts
     '''
 
-    value_type_concept_id = 1
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
     parent_concept_id = value_type_concept_id
 
     # Concept value type: ValueType
@@ -948,6 +982,38 @@ def create_core_concepts(cnxn, crsr):
     # Concept value type: Post Mortem
     parent_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation", parent_concept_id, "PostMortem", "Post Mortem", value_type_concept_id)
 
+    #------------------------------------------------
+    #--Event Attribute Types and values
+    #------------------------------------------------
+
+    parent_concept_id = value_type_concept_id
+
+    # Concept value type: Event
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Concept", parent_concept_id, "EventAttribute", "Event Attribute", value_type_concept_id)
+
+    # Concept value type: Observation
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute", parent_concept_id, "Observation", "Observation", value_type_concept_id)
+
+    # Concept value type: Post Mortem
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", parent_concept_id, "PostMortem", "Post Mortem", value_type_concept_id)
+
+    # Concept value type: Look up
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "Lookup", "Look up", value_type_concept_id)
+
+
+    # ------------------------------------------------
+    # --Patient Attribute Types and values
+    # ------------------------------------------------
+
+    parent_concept_id = value_type_concept_id
+
+    # Concept value type: Event
+    parent_concept_id = GetConceptID(cnxn, crsr, "/Concept", parent_concept_id, "PatientAttribute", "Patient Attribute",
+                                     value_type_concept_id)
+
+    # Concept value type: Look up
+    parent_concept_id = GetConceptID(cnxn, crsr, "/PatientAttribute", parent_concept_id, "Lookup",
+                                     "Look up", value_type_concept_id)
 
 
 def runTests(cnxn, crsr):
@@ -995,24 +1061,31 @@ def runTests(cnxn, crsr):
     # AddPatientAttribute(cnxn, crsr, patient_id, "AC", "Age Category", "ID", "6", "Adult")
     # AddPatientAttribute(cnxn, crsr, patient_id, "AG", "Age In Years", "IN", 62)
     #
-    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "CASEID", "Case ID", "IN", 1001)
-    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "PMNumber", "PM Number", "TX", "17P564")
-    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "REF", "Referral", "ID", "1", "Sudden Death < 12 months")
-    # AddEventAttribute(cnxn, crsr, event_id, "Post Mortem", "NA", "Number of Attributes", "ID", "1", "Less than 10")
-    #
-    #
-    # SQLstring = BuildEventsSQL(cnxn, crsr, 5, 77, "tblCardiovascularSystems", 1)
-    # crsr.execute(SQLstring)
-    # row = crsr.fetchone()
-    #
-    # print(row.PMNumber)  # Should be 00P001
-    #
-    # print(GetAgeCategory(None,234,""))
-    # print(GetAgeCategoryID(None,234,""))
-    # print(GetPMYear("95P000"))
-    # print(GetPMYear("21P000"))
-    # print(GetPMYear("18P000"))
-    # print(GetPMYear("9P5000"))
+
+    # Concept value type: Post Mortem
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+
+    # Concept value type: tblCases
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "tblCases", "tblCases", value_type_concept_id)
+
+    AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "CASEID", "Case ID", "IN", 1001)
+    AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "PMNumber", "PM Number", "TX", "17P564")
+    AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "REF", "Referral", "ID", "1", "Sudden Death < 12 months")
+    AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem", "NA", "Number of Attributes", "ID", "1", "Less than 10")
+
+    SQLstring = BuildEventsSQL(cnxn, crsr, 5, 77, "tblCardiovascularSystems", 1)
+    crsr.execute(SQLstring)
+    row = crsr.fetchone()
+
+    print(row.PMNumber)  # Should be 00P001
+
+    print(GetAgeCategory(None,234,""))
+    print(GetAgeCategoryID(None,234,""))
+    print(GetPMYear("95P000"))
+    print(GetPMYear("21P000"))
+    print(GetPMYear("18P000"))
+    print(GetPMYear("9P5000"))
 
 def CreateHASCSVFiles(cnxn: object, crsr: object, destination_folder):
     '''
@@ -1275,11 +1348,11 @@ def CreateAttributeFromAttribute(cnxn, crsr):
 
     #Add Attributes and values
     #Not really necessary as will get added below
-    event_attribute_type_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM")
-    value_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "001", "Unknown", "VL")
-    value_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "002", "known", "VL")
-    value_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "003", "Other", "VL")
-    value_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "994", "N/A", "VL")
+    event_attribute_type_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM")
+    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "001", "Unknown", "VL")
+    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "002", "known", "VL")
+    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "003", "Other", "VL")
+    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "994", "N/A", "VL")
 
     #Get all Event Attributes of the original type
 
@@ -1287,17 +1360,17 @@ def CreateAttributeFromAttribute(cnxn, crsr):
     SQLstring = "SELECT "
     SQLstring += "  event_attribute_id, " # TODO we seem to have a duplicate CaseID
     SQLstring += "  event_id, "
-    SQLstring += "  event_attribute_type_id, "
+    SQLstring += "  event_attribute_type_concept_id, "
     SQLstring += "  value_text, "
     SQLstring += "  value_numeric, "
-    SQLstring += "  value_date, "
-    SQLstring += "  value_id, "
+    SQLstring += "  value_datetime, "
+    SQLstring += "  value_concept_id, "
     SQLstring += "  value_type_concept_id, "
     SQLstring += "  code, "
     SQLstring += "  label "
     SQLstring += "FROM ha_event_attributes "
     SQLstring += "  LEFT OUTER JOIN ha_concepts "
-    SQLstring += "    ON ha_concepts.concept_id = ha_event_attributes.value_id "
+    SQLstring += "    ON ha_concepts.concept_id = ha_event_attributes.value_concept_id "
     SQLstring += "WHERE "
     SQLstring += "  (ha_concepts.category = '\Event Attribute Type\Post Mortem\Look Up\COD2_COD2ID') "
     SQLstring += ";"
@@ -1864,9 +1937,7 @@ def main():
 
     # create_has_tables(rep_cnxn, rep_crsr)
 
-    # ToDo Move to within create_has_tables - ditto create core concepts
-    # create_concept_id(rep_cnxn, rep_crsr)
-
+    # ToDo Move to within create_has_tables
     create_core_concepts(rep_cnxn, rep_crsr)
 
     runTests(rep_cnxn, rep_crsr)
