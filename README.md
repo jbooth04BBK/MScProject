@@ -4,7 +4,9 @@ MSC Project code - PM Research Database
 ### Create_HAS_Tables.py
 #### create_has_tables
 * DROPs and CREATEs HAS Tables in Staging database
+* Creates base concepts
 #### runTests
+Completes unit testing on the following procedures and functions:
 * GetConceptID
 * GetStaffID
 * GetPatientID

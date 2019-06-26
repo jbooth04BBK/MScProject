@@ -1371,11 +1371,20 @@ def CreateAttributeFromAttribute(cnxn, crsr):
 
     #Add Attributes and values
     #Not really necessary as will get added below
-    event_attribute_type_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM")
-    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "001", "Unknown", "VL")
-    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "002", "known", "VL")
-    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "003", "Other", "VL")
-    value_concept_id = GetConceptID(cnxn, crsr, "\Event Attribute Type\Post Mortem\Look Up\COD2_SUMM", "994", "N/A", "VL")
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "tblFinalDiagnoses", "tblFinalDiagnoses", value_type_concept_id)
+
+    event_attribute_type_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+
+    value_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "001", "Unknown", value_type_concept_id)
+    value_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "002", "known", value_type_concept_id)
+    value_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "003", "Other", value_type_concept_id)
+    value_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "994", "N/A", value_type_concept_id)
 
     #Get all Event Attributes of the original type
 
@@ -1395,7 +1404,7 @@ def CreateAttributeFromAttribute(cnxn, crsr):
     SQLstring += "  LEFT OUTER JOIN ha_concepts "
     SQLstring += "    ON ha_concepts.concept_id = ha_event_attributes.value_concept_id "
     SQLstring += "WHERE "
-    SQLstring += "  (ha_concepts.category = '\Event Attribute Type\Post Mortem\Look Up\COD2_COD2ID') "
+    SQLstring += "  (ha_concepts.category = '/EventAttribute/Observation/PostMortem/LookUp/COD2_COD2ID') "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -1420,7 +1429,7 @@ def CreateAttributeFromAttribute(cnxn, crsr):
            code = "002"
            text = "Known"
 
-        AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Post Mortem\\tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
+        AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
 
     print("")
     print("Done!")
@@ -1606,22 +1615,22 @@ def create_reporting_attributes(cnxn, crsr):
         if row >= start_row:
 
             #Defined as having a External exam if Body weight is greater than 0
-            category = r"\Event Attribute Type\Post Mortem\tblExternalExams"
+            category = r"/EventAttribute/Observation/PostMortem/tblExternalExams"
             code = r"BodyWeight"
 
             event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
-                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "ExternalExam", "External Examination", "TF", 1)
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "ExternalExam", "External Examination", "TF", 1)
 
             # Defined as having a Internal exam if Heart weight is greater than 0
-            category = r"\Event Attribute Type\Post Mortem\tblInternalExams"
+            category = r"/EventAttribute/Observation/PostMortem/tblInternalExams"
             code = r"HeartWeight"
 
             event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
-                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "InternalExam", "Internal Examination", "TF", 1)
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "InternalExam", "Internal Examination", "TF", 1)
 
             # Get number of samples taken
             category = r"\Event Type"
@@ -1631,27 +1640,27 @@ def create_reporting_attributes(cnxn, crsr):
 
             if events > 0:
                 #Get number of samples
-                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "SAMPLETKN", "Samples Taken", "IN", events)
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "SAMPLETKN", "Samples Taken", "IN", events)
 
                 # Defined as having Microbiology if any Test Sets B*
-                category = r"\Event Type"
+                category = r"/Event/Observation"
                 code = r"LT"
                 value_code = r"B"
 
                 events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code, value_code)
 
                 if events != None:
-                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "MICRO", "Microbiology Tests", "TF", 1)
+                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "MICRO", "Microbiology Tests", "TF", 1)
 
                 # Defined as having Microbiology if any Test Sets B*
-                category = r"\Event Type"
+                category = r"/Event/Observation"
                 code = r"LT"
                 value_code = r"V"
 
                 events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code, value_code)
 
                 if events != None:
-                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Post Mortem\Reporting", "VIROLOGY", "Virology Tests", "TF", 1)
+                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "VIROLOGY", "Virology Tests", "TF", 1)
 
     print("")
     print("Done!")
@@ -1681,9 +1690,14 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
     ReportTableFieldRows = crsr.fetchall()
 
     # Get event type ID for post mortem
-    event_type_concept_id = GetConceptID(cnxn, crsr, "\Event Type", "PM", "Post Mortem")
+    event_type_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation", None, "PostMortem")
     # Get staff type ID for consultants
-    staff_type_concept_id = GetConceptID(cnxn, crsr, "\Staff Type", "CN", "Consultant", "ID")
+    staff_type_concept_id = GetConceptID(cnxn, crsr, "/Staff/StaffType", None, "Consultant")
+
+    #Check concepts are created for every table to be used
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+    for ReportTableRow in ReportTableRows:
+        parent_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation/PostMortem", event_type_concept_id, ReportTableRow.SystemTableName, ReportTableRow.SystemTableName, value_type_concept_id)
 
     #Before you can create an event you need the patient and the member of staff
 
@@ -1780,17 +1794,17 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
 
         #Add Event Attributes
         #Do we need some sort of code & alt code on Event?
-        AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "CASEID", "Case ID", "IN", CaseRow.CaseID)
-        AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "PMNumber", "PM Number", "TX", CaseRow.PMNumber)
-        AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "Year", "Year", "IN", event_year)
+        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "CASEID", "Case ID", "IN", CaseRow.CaseID)
+        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "PMNumber", "PM Number", "TX", CaseRow.PMNumber)
+        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "Year", "Year", "IN", event_year)
         if not pandas.isnull(CaseRow.PMInterval) and CaseRow.PMInterval > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "PMINT", "PM Interval", "IN", CaseRow.PMInterval)
+            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "PMINT", "PM Interval", "IN", CaseRow.PMInterval)
         if CaseRow.ReferralID > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "REF", "Referral", "ID", CaseRow.ReferralID, CaseRow.ReferralText)
+            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "REF", "Referral", "ID", CaseRow.ReferralID, CaseRow.ReferralText)
         if CaseRow.SeasonID > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblCases", "SSN", "Season", "ID", CaseRow.SeasonID, CaseRow.SeasonText)
+            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "SSN", "Season", "ID", CaseRow.SeasonID, CaseRow.SeasonText)
         if not pandas.isnull(CaseRow.DateAutopsy):
-            AddEventAttribute(cnxn, crsr, event_id, "Post Mortem\\tblAutopsy", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
+            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblAutopsy", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
 
         CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFieldRows, CaseRow.CaseID, event_id, "Post Mortem")
 
@@ -1853,15 +1867,15 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
 
                                 value_type = "TF"
                                 if value:
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TF", 1)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TF", 1)
                                 else:
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TF", 0)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TF", 0)
 
                             elif ReportTableFieldRow.SystemFieldType == 3:  # Integer
 
                                 if value != -999:
                                     value_type = "IN"
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "IN", value)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "IN", value)
 
                             elif ReportTableFieldRow.SystemFieldType == 4:  # Long Integer
                                 if not pandas.isnull(ReportTableFieldRow.SystemLKTableID) and ReportTableFieldRow.SystemLKTableID > 0 and "CaseID:AutopsyID:InternalExamID:RadiologyID".find(ReportTableFieldRow.SystemFieldName) == -1:
@@ -1875,7 +1889,7 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
                                             row = res_crsr.execute("SELECT %s FROM %s WHERE %s = %s" % (LKTextFieldName, LKTableName, LKIDFieldName, value)).fetchone()
                                             if not pandas.isnull(row):
                                                 value_type = "ID"
-                                                AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "ID", value, row[0])
+                                                AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "ID", value, row[0])
                                             else:
                                                 pass #TODO Add message for missing value
                                         else:
@@ -1883,7 +1897,7 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
                                 else:
                                     if value != -999:
                                         value_type = "IN"
-                                        AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "IN", value)
+                                        AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "IN", value)
 
                             elif ReportTableFieldRow.SystemFieldType == 6 or ReportTableFieldRow.SystemFieldType == 7:  # Single or Double
 
@@ -1905,7 +1919,7 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
                                     pass
                                 else:
                                     value_type = "FL"
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "FL", value)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "FL", value)
 
                             elif ReportTableFieldRow.SystemFieldType == 8:  # Date
 
@@ -1913,18 +1927,18 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
                                 #I am using a date time with a value_type string so add TD for time of day and TM for time to do smothing but only measures up to 24 hours.
                                 if value.date() <= datetime.date(1900, 1, 1):
                                     value_type = "TD"
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TD", value)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TD", value)
                                 elif value.time() <= datetime.time(0, 0):
                                     value_type = "DA"
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "DA", value)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "DA", value)
                                 else:
                                     value_type = "DT"
-                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "DT", value)
+                                    AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "DT", value)
 
                             elif ReportTableFieldRow.SystemFieldType == 10:  # Text
 
                                 value_type = "TX"
-                                AddEventAttribute(cnxn, crsr, event_id, event_type_label + "\\" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TX", value)
+                                AddEventAttribute(cnxn, crsr, event_id, event_type_label + "/" + ReportTableRow.SystemTableName, ReportTableFieldRow.SystemFieldName, ReportTableFieldRow.SystemFieldName, "TX", value)
 
                             else:
                                 value_type = "ER"
@@ -1962,7 +1976,7 @@ def main():
 
     # runTests(rep_cnxn, rep_crsr)
 
-    # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 999999)
+    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 5)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
