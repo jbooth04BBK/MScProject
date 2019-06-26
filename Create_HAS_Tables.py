@@ -480,6 +480,8 @@ def GetValueTypeConceptId(cnxn, crsr, value_type):
         value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "DATETIME")
     elif value_type == "TM":
         value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "TIME")
+    elif value_type == "TD": # Time of day
+        value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "TIME")
     elif value_type == "TF":
         value_type_concept_id = GetConceptID(cnxn, crsr, "/Concept/ValueType", None, "BOOLEAN")
 
@@ -1681,6 +1683,12 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
     crsr.execute(SQLstring)
     ReportTableRows = crsr.fetchall()
 
+    #Check concepts are created for every table to be used
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+    for ReportTableRow in ReportTableRows:
+        parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, ReportTableRow.SystemTableName, ReportTableRow.SystemTableName, value_type_concept_id)
+
     SQLstring = "SELECT tblReportTables.ReportTableID, tblReportTables.ReportTableCode, tblSystemFields.SystemFieldName, tblReportFields.IncludeInReport, tblSystemFields.SystemLKTableID, tblSystemFields.SystemFieldType, tblSystemTables_1.SystemTableName AS SystemLKTableName "
     SQLstring += "FROM ((tblSystemTables INNER JOIN tblReportTables ON tblSystemTables.SystemTableID = tblReportTables.SystemTableID) INNER JOIN (tblSystemFields INNER JOIN tblReportFields ON tblSystemFields.SystemFieldID = tblReportFields.SystemFieldID) ON tblSystemTables.SystemTableID = tblSystemFields.SystemTableID) LEFT JOIN tblSystemTables AS tblSystemTables_1 ON tblSystemFields.SystemLkTableID = tblSystemTables_1.SystemTableID "
     SQLstring += "WHERE tblReportFields.IncludeInEventAttributes = True "
@@ -1693,11 +1701,6 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
     event_type_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation", None, "PostMortem")
     # Get staff type ID for consultants
     staff_type_concept_id = GetConceptID(cnxn, crsr, "/Staff/StaffType", None, "Consultant")
-
-    #Check concepts are created for every table to be used
-    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
-    for ReportTableRow in ReportTableRows:
-        parent_concept_id = GetConceptID(cnxn, crsr, "/Event/Observation/PostMortem", event_type_concept_id, ReportTableRow.SystemTableName, ReportTableRow.SystemTableName, value_type_concept_id)
 
     #Before you can create an event you need the patient and the member of staff
 
@@ -1794,19 +1797,19 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
 
         #Add Event Attributes
         #Do we need some sort of code & alt code on Event?
-        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "CASEID", "Case ID", "IN", CaseRow.CaseID)
-        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "PMNumber", "PM Number", "TX", CaseRow.PMNumber)
-        AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "Year", "Year", "IN", event_year)
+        AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "CASEID", "Case ID", "IN", CaseRow.CaseID)
+        AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "PMNumber", "PM Number", "TX", CaseRow.PMNumber)
+        AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "Year", "Year", "IN", event_year)
         if not pandas.isnull(CaseRow.PMInterval) and CaseRow.PMInterval > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "PMINT", "PM Interval", "IN", CaseRow.PMInterval)
+            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "PMINT", "PM Interval", "IN", CaseRow.PMInterval)
         if CaseRow.ReferralID > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "REF", "Referral", "ID", CaseRow.ReferralID, CaseRow.ReferralText)
+            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "REF", "Referral", "ID", CaseRow.ReferralID, CaseRow.ReferralText)
         if CaseRow.SeasonID > 0:
-            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblCases", "SSN", "Season", "ID", CaseRow.SeasonID, CaseRow.SeasonText)
+            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "SSN", "Season", "ID", CaseRow.SeasonID, CaseRow.SeasonText)
         if not pandas.isnull(CaseRow.DateAutopsy):
-            AddEventAttribute(cnxn, crsr, event_id, "PostMortem/tblAutopsy", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
+            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblAutopsy", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
 
-        CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFieldRows, CaseRow.CaseID, event_id, "Post Mortem")
+        CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFieldRows, CaseRow.CaseID, event_id, "Observation/PostMortem")
 
         print(row, CaseRow.PMNumber, CaseRow.SeasonText, f'{time.time() - last_time:.1f} case secs', f'{time.time() - first_time:.1f} total secs')
         gbl_add_event_time += (time.time() - last_time)
@@ -1976,7 +1979,7 @@ def main():
 
     # runTests(rep_cnxn, rep_crsr)
 
-    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 5)
+    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 50)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
