@@ -16,7 +16,37 @@ def create_rdv_complete(cnxn, crsr):
 
     '''
 
-    # get patient attributes
+    SQLstring = "SELECT"
+    SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label, "
+    SQLstring += "       COUNT(*) AS records "
+    SQLstring += "FROM   ((ha_events "
+    SQLstring += "       INNER JOIN ha_patients "
+    SQLstring += "               ON ha_events.patient_id = ha_patients.patient_id) "
+    SQLstring += "       INNER JOIN ha_patient_attributes "
+    SQLstring += "               ON ha_patients.patient_id = ha_patient_attributes.patient_id) "
+    SQLstring += "       INNER JOIN ha_concepts "
+    SQLstring += "               ON ha_patient_attributes.patient_attribute_type_concept_id = ha_concepts.concept_id "
+    SQLstring += "GROUP BY "
+    SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label "
+    SQLstring += "ORDER BY "
+    SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    EventPatientAttributeSummaryRows = crsr.fetchall()
+
+    for EventPatientAttributeSummaryRow in EventPatientAttributeSummaryRows:
+        print(EventPatientAttributeSummaryRow.label, EventPatientAttributeSummaryRow.records)
+
+
+
+    # get patient attributes values
 
     SQLstring = "SELECT"
     SQLstring += "       ha_events.event_id, "
@@ -28,7 +58,7 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
     SQLstring += "       ha_concepts.value_type_concept_id, "
     SQLstring += "       ha_patient_attributes.value_numeric, "
-    SQLstring += "       ha_concepts_1.label "
+    SQLstring += "       ha_concepts_1.code "
     SQLstring += "FROM   (((ha_events "
     SQLstring += "       INNER JOIN ha_patients "
     SQLstring += "               ON ha_events.patient_id = ha_patients.patient_id) "
@@ -45,6 +75,59 @@ def create_rdv_complete(cnxn, crsr):
 
     for EventPatientAttributeRow in EventPatientAttributeRows:
         print(EventPatientAttributeRow.event_id)
+
+    SQLstring = "SELECT "
+    SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label, "
+    SQLstring += "       COUNT(*) AS records "
+    SQLstring += "FROM   (ha_events "
+    SQLstring += "       INNER JOIN ha_event_attributes "
+    SQLstring += "               ON ha_events.event_id = ha_event_attributes.event_id) "
+    SQLstring += "       INNER JOIN ha_concepts "
+    SQLstring += "               ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts.concept_id "
+    SQLstring += "GROUP BY "
+    SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label "
+    SQLstring += "ORDER BY "
+    SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_concepts.label "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    EventAttributeSummaryRows = crsr.fetchall()
+
+    for EventAttributeSummaryRow in EventAttributeSummaryRows:
+        print(EventAttributeSummaryRow.label, EventAttributeSummaryRow.records)
+
+
+    # get all event attributes
+    SQLstring = "SELECT "
+    SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_events.event_type_concept_id, "
+    SQLstring += "       ha_event_attributes.event_attribute_id, "
+    SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
+    SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_event_attributes.value_text, "
+    SQLstring += "       ha_event_attributes.value_numeric, "
+    SQLstring += "       ha_event_attributes.value_datetime, "
+    SQLstring += "       ha_concepts_1.code "
+    SQLstring += "FROM   ((ha_events "
+    SQLstring += "       INNER JOIN ha_event_attributes "
+    SQLstring += "               ON ha_events.event_id = ha_event_attributes.event_id) "
+    SQLstring += "       INNER JOIN ha_concepts "
+    SQLstring += "               ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts.concept_id) "
+    SQLstring += "       LEFT JOIN ha_concepts AS ha_concepts_1 "
+    SQLstring += "               ON ha_event_attributes.value_concept_id = ha_concepts_1.concept_id "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    EventAttributeRows = crsr.fetchall()
+
+    for EventAttributeRow in EventAttributeRows:
+        print(EventAttributeRow.event_id)
 
 
 def main():
