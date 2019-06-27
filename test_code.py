@@ -11,3 +11,7 @@ parent_category = event_type_category.rsplit("/",1)[0]
 parent_code = event_type_category.rsplit("/",1)[1]
 print(parent_category)
 print(parent_code)
+
+EventAttributes = [47]
+myList = ','.join(map(str, EventAttributes))
+print(myList)
