@@ -26,6 +26,29 @@ def get_column_heading(text):
 def file_time_stamp():
     return str(datetime.datetime.now())[:19].replace("-", "").replace(":", "").replace(" ", "_")
 
+def format_csv_output(value_type_concept_id, code, value_numeric, value_datetime, value_text):
+
+    if value_type_concept_id == 1:
+        output_text = code
+    elif value_type_concept_id == 3:  # INTEGER
+        output_text = "{:.0f}".format(value_numeric)
+    elif value_type_concept_id == 4:  # FLOAT
+        output_text = "{:.4f}".format(value_numeric)
+    elif value_type_concept_id == 5:  # DATE
+        output_text = '{0:%Y-%m-%d}'.format(value_datetime)
+    elif value_type_concept_id == 6:  # TIME
+        output_text = '{0:%H:%M:%S}'.format(value_datetime)
+    elif value_type_concept_id == 7:  # DATETIME
+        output_text = '{0:%Y-%m-%d %H:%M:%S}'.format(value_datetime)
+    elif value_type_concept_id == 8:  # TEXT
+        output_text = value_text
+    elif value_type_concept_id == 9:  # BOOLEAN
+        output_text = "{:1.0f}".format(value_numeric)
+    else:
+        output_text = "Unknown Value Type: {:.0f}".format(value_type_concept_id)
+
+    return output_text
+
 def create_rdv_complete(cnxn, crsr):
 
     '''
@@ -80,6 +103,7 @@ def create_rdv_complete(cnxn, crsr):
 
     SQLstring = "SELECT"
     SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_events.start_date, "
     SQLstring += "       ha_events.patient_id, "
     SQLstring += "       ha_events.event_type_concept_id, "
     SQLstring += "       ha_events.start_date, "
@@ -87,7 +111,9 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += "       ha_patient_attributes.patient_attribute_id, "
     SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
     SQLstring += "       ha_concepts.value_type_concept_id, "
+    SQLstring += "       ha_patient_attributes.value_text, "
     SQLstring += "       ha_patient_attributes.value_numeric, "
+    SQLstring += "       ha_patient_attributes.value_datetime, "
     SQLstring += "       ha_concepts_1.code "
     SQLstring += "FROM   (((ha_events "
     SQLstring += "       INNER JOIN ha_patients "
@@ -97,7 +123,10 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += "       INNER JOIN ha_concepts "
     SQLstring += "               ON ha_patient_attributes.patient_attribute_type_concept_id = ha_concepts.concept_id) "
     SQLstring += "       LEFT JOIN ha_concepts AS ha_concepts_1 "
-    SQLstring += "               ON ha_patient_attributes.value_concept_id = ha_concepts_1.concept_id"
+    SQLstring += "               ON ha_patient_attributes.value_concept_id = ha_concepts_1.concept_id "
+    SQLstring += "ORDER BY "
+    SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -133,6 +162,7 @@ def create_rdv_complete(cnxn, crsr):
     # get all event attributes
     SQLstring = "SELECT "
     SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_events.start_date, "
     SQLstring += "       ha_events.event_type_concept_id, "
     SQLstring += "       ha_event_attributes.event_attribute_id, "
     SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
@@ -148,6 +178,9 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += "               ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts.concept_id) "
     SQLstring += "       LEFT JOIN ha_concepts AS ha_concepts_1 "
     SQLstring += "               ON ha_event_attributes.value_concept_id = ha_concepts_1.concept_id "
+    SQLstring += "ORDER BY "
+    SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_event_attributes.event_attribute_type_concept_id "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -206,17 +239,31 @@ def create_rdv_complete(cnxn, crsr):
 
         out_row = []
         out_row.append(EventRow.event_id)
+        out_row.append('{0:%Y-%m-%d %H:%M:%S}'.format(EventRow.start_date))
 
         # For each event process list of patient_attributes
         column_pos = 0
         for EventPatientAttributeRow in EventPatientAttributeRows:
             if EventPatientAttributeRow.event_id == EventRow.event_id:
-                # is this the next attribute?
-                if patient_col[column_pos] == EventPatientAttributeRow.patient_attribute_type_concept_id:
-                    out_row.append(EventPatientAttributeRow.patient_attribute_id)
-                else:
-                    out_row.append("NULL")
-                column_pos += 1
+                # If a row exists for an event it will always be output
+                output_column = True
+                while output_column:
+                    # is this the next attribute?
+                    if patient_col[column_pos] == EventPatientAttributeRow.patient_attribute_type_concept_id:
+                        output_text = format_csv_output(EventPatientAttributeRow.value_type_concept_id,
+                                                        EventPatientAttributeRow.code,
+                                                        EventPatientAttributeRow.value_numeric,
+                                                        EventPatientAttributeRow.value_datetime,
+                                                        EventPatientAttributeRow.value_text)
+
+                        out_row.append(output_text)
+
+
+                        output_column = False
+
+                    else:
+                        out_row.append("NULL")
+                    column_pos += 1
         # may be the last attribute missing
         if column_pos <= len(patient_col)-1:
             for col in range(column_pos,len(patient_col)):
@@ -231,38 +278,20 @@ def create_rdv_complete(cnxn, crsr):
                 while output_column:
                     # is this the next attribute?
                     if event_col[column_pos] == EventAttributeRow.event_attribute_type_concept_id:
-                        # SQLstring += "       ha_event_attributes.value_text, "
-                        # SQLstring += "       ha_event_attributes.value_numeric, "
-                        # SQLstring += "       ha_event_attributes.value_datetime, "
-                        # SQLstring += "       ha_concepts_1.code "
 
-                        if EventAttributeRow.value_type_concept_id == 1:
-                            out_row.append(EventAttributeRow.code)
-                        elif EventAttributeRow.value_type_concept_id == 3:  # INTEGER
-                            out_row.append(EventAttributeRow.value_numeric)
-                        elif EventAttributeRow.value_type_concept_id == 4:  # FLOAT
-                            out_row.append(EventAttributeRow.value_numeric)
-                        elif EventAttributeRow.value_type_concept_id == 5:  # DATE
-                            out_row.append(EventAttributeRow.value_datetime)
-                        elif EventAttributeRow.value_type_concept_id == 6:  # TIME
-                            out_row.append(EventAttributeRow.value_datetime)
-                        elif EventAttributeRow.value_type_concept_id == 7:  # DATETIME
-                            out_row.append(EventAttributeRow.value_datetime)
-                        elif EventAttributeRow.value_type_concept_id == 8:  # TEXT
-                            out_row.append(EventAttributeRow.value_text)
-                        elif EventAttributeRow.value_type_concept_id == 9:  # BOOLEAN
-                            out_row.append(EventAttributeRow.value_numeric)
-                        else:
-                            out_row.append(EventAttributeRow.event_attribute_id)
+                        output_text = format_csv_output(EventAttributeRow.value_type_concept_id,
+                                                        EventAttributeRow.code,
+                                                        EventAttributeRow.value_numeric,
+                                                        EventAttributeRow.value_datetime,
+                                                        EventAttributeRow.value_text)
+
+                        out_row.append(output_text)
+
                         output_column = False
+
                     else:
                         out_row.append("NULL")
                     column_pos += 1
-                    # This should be removed
-                    if column_pos >= len(event_col):
-                        break
-            if column_pos >= len(event_col):
-                break
         # may be the last attributes missing
         if column_pos <= len(event_col)-1:
             for col in range(column_pos,len(event_col)):
