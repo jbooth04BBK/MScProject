@@ -1956,11 +1956,6 @@ def CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFiel
     '''
 def main():
 
-    #conn_str = (
-    #    r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
-    #    r'DBQ=I:\Histo\John Booth\ReCreatePMDatabase\PMResearchReportDB - Copy.accdb;Uid=Admin;Pwd=;ExtendedAnsiSQL=1;'
-    #)
-
     rep_conn_str = (
         r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
         r'DBQ=I:\DRE\Projects\Research\0004-Post mortem-AccessDB\DataExtraction\PMResearchReportDB.accdb;Uid=Admin;Pwd=;ExtendedAnsiSQL=1;'
@@ -1979,7 +1974,7 @@ def main():
 
     # runTests(rep_cnxn, rep_crsr)
 
-    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 50)
+    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 1000)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
