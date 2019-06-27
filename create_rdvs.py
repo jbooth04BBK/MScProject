@@ -112,7 +112,7 @@ def getEventRows(cnxn, crsr, EventPatientAttributes = [], EventAttributes = []):
 
 
 
-def getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes = []):
+def getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes = [], EventPatientAttributeFilters = []):
 
     # Get summary list of patient_ids
     SQLstring = "SELECT"
@@ -130,7 +130,7 @@ def getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes = [])
 
     if len(EventPatientAttributes) > 0:
         SQLstring += "WHERE "
-        SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id IN (" + ','.join(map(str, EventPatientAttributes)) + ") "
+        SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id IN (" + ','.join(map(str, list(set(EventPatientAttributes + EventPatientAttributeFilters)))) + ") "
 
     SQLstring += "GROUP BY "
     SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id, "
@@ -146,7 +146,7 @@ def getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes = [])
     return crsr.fetchall()
 
 
-def getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes = []):
+def getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes = [], EventPatientAttributeFilters = []):
 
     # get patient attributes values
 
@@ -176,7 +176,7 @@ def getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes = []):
 
     if len(EventPatientAttributes) > 0:
         SQLstring += "WHERE "
-        SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id IN (" + ','.join(map(str, EventPatientAttributes)) + ") "
+        SQLstring += "       ha_patient_attributes.patient_attribute_type_concept_id IN (" + ','.join(map(str, list(set(EventPatientAttributes + EventPatientAttributeFilters)))) + ") "
 
     SQLstring += "ORDER BY "
     SQLstring += "       ha_events.event_id, "
@@ -186,7 +186,7 @@ def getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes = []):
     crsr.execute(SQLstring)
     return crsr.fetchall()
 
-def getEventAttributeSummaryRows(cnxn, crsr, EventAttributes = []):
+def getEventAttributeSummaryRows(cnxn, crsr, EventAttributes = [], EventAttributeFilters = []):
 
     SQLstring = "SELECT "
     SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
@@ -201,7 +201,7 @@ def getEventAttributeSummaryRows(cnxn, crsr, EventAttributes = []):
 
     if len(EventAttributes) > 0:
         SQLstring += "WHERE "
-        SQLstring += "       ha_event_attributes.event_attribute_type_concept_id IN (" + ','.join(map(str, EventAttributes)) + ") "
+        SQLstring += "       ha_event_attributes.event_attribute_type_concept_id IN (" + ','.join(map(str, list(set(EventAttributes + EventAttributeFilters)))) + ") "
 
     SQLstring += "GROUP BY "
     SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
@@ -216,7 +216,7 @@ def getEventAttributeSummaryRows(cnxn, crsr, EventAttributes = []):
     crsr.execute(SQLstring)
     return crsr.fetchall()
 
-def getEventAttributeRows(cnxn, crsr, EventAttributes = []):
+def getEventAttributeRows(cnxn, crsr, EventAttributes = [], EventAttributeFilters = []):
 
     # get all event attributes
     SQLstring = "SELECT "
@@ -228,6 +228,7 @@ def getEventAttributeRows(cnxn, crsr, EventAttributes = []):
     SQLstring += "       ha_event_attributes.value_text, "
     SQLstring += "       ha_event_attributes.value_numeric, "
     SQLstring += "       ha_event_attributes.value_datetime, "
+    SQLstring += "       ha_event_attributes.value_concept_id, "
     SQLstring += "       ha_concepts_1.code "
     SQLstring += "FROM   ((ha_events "
     SQLstring += "       INNER JOIN ha_event_attributes "
@@ -239,7 +240,7 @@ def getEventAttributeRows(cnxn, crsr, EventAttributes = []):
 
     if len(EventAttributes) > 0:
         SQLstring += "WHERE "
-        SQLstring += "       ha_event_attributes.event_attribute_type_concept_id IN (" + ','.join(map(str, EventAttributes)) + ") "
+        SQLstring += "       ha_event_attributes.event_attribute_type_concept_id IN (" + ','.join(map(str, list(set(EventAttributes + EventAttributeFilters)))) + ") "
 
     SQLstring += "ORDER BY "
     SQLstring += "       ha_events.event_id, "
@@ -249,93 +250,45 @@ def getEventAttributeRows(cnxn, crsr, EventAttributes = []):
     crsr.execute(SQLstring)
     return crsr.fetchall()
 
-def create_rdv_selection_01(cnxn, crsr):
+def create_rdv_selection(cnxn, crsr):
 
     # Select Patient Attributes
     EventPatientAttributes = []
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestational Age
+
+    # Select Patient Attribute Filters
+    EventPatientAttributeFilters = []
+    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
+    EventPatientAttributeFilterValues = []
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004")) # 44 = Age Category - infant death
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005")) # 44 = Age Category - infant death
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006")) # 44 = Age Category - child death
 
     # Select Event Attributes
     EventAttributes = []
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID")) # 47 = CASEID
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "PMNumber"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
-
-    # Create selections
-    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes)
-
-    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes)
-
-    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr, EventAttributes)
-
-    EventAttributeRows = getEventAttributeRows(cnxn, crsr, EventAttributes)
-
-    # Get list of event_ids
-    EventRows = getEventRows(cnxn, crsr, EventPatientAttributes, EventAttributes)
-
-    file_name = "rdv_demo_selection_01"
-
-    create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows,
-               EventAttributeSummaryRows, EventAttributeRows)
-
-
-def create_rdv_selection_02(cnxn, crsr):
-
-    # Select Patient Attributes
-    EventPatientAttributes = []
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestational Age
-
-    # Select Patient Attribute Filters
-    EventPatientAttributeFilters = []
-    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004")) # 44 = Age Category - neonates
-    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005")) # 44 = Age Category - infant death
-    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006")) # 44 = Age Category - child death
-
-    # Select Event Attributes
-    EventAttributes = []
-    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "CauseOfDeathPath1c")) # Season
 
     # Select Event Attribute Filters
     EventAttributeFilters = []
-
-    # Create selections
-    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes)
-
-    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes)
-
-    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr, EventAttributes)
-
-    EventAttributeRows = getEventAttributeRows(cnxn, crsr, EventAttributes)
-
-    # Get list of event_ids
-    EventRows = getEventRows(cnxn, crsr, EventPatientAttributes, EventAttributes)
+    # EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
+    EventAttributeFilterValues = []
+    # EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/SSN", None, "001")) # Season
 
     file_name = "rdv_demo_selection_02"
 
-    create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows,
-               EventAttributeSummaryRows, EventAttributeRows, EventPatientAttributeFilters, EventAttributeFilters)
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
 def create_rdv_complete(cnxn, crsr):
 
-    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr)
-
-    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr)
-
-    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr)
-
-    EventAttributeRows = getEventAttributeRows(cnxn, crsr)
-
-    # Get list of event_ids
-    EventRows = getEventRows(cnxn, crsr)
-
     file_name = "rdv_demo_complete"
 
-    create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows, EventAttributeSummaryRows, EventAttributeRows)
+    create_rdv(cnxn, crsr, file_name)
 
-def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows, EventAttributeSummaryRows, EventAttributeRows, EventPatientAttributeFilters = [], EventAttributeFilters = []):
+def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientAttributeFilters = [], EventPatientAttributeFilterValues = [], EventAttributes = [], EventAttributeFilters = [], EventAttributeFilterValues = []):
 
     '''
 
@@ -344,11 +297,24 @@ def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRow
 
     '''
 
+    # Get rows
+
+    # Create selections
+    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr, EventPatientAttributes, EventPatientAttributeFilters)
+
+    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr, EventPatientAttributes, EventPatientAttributeFilters)
+
+    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr, EventAttributes, EventAttributeFilters)
+
+    EventAttributeRows = getEventAttributeRows(cnxn, crsr, EventAttributes, EventAttributeFilters)
+
+    # Get list of event_ids
+    EventRows = getEventRows(cnxn, crsr, EventPatientAttributes, EventAttributes)
+
+
     # write to CSV file
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
-
-    #Does file exist - if it does rename with time stamp
     file_ext = ".csv"
 
     # If file left over from last run - rename it, so start fresh.
@@ -357,25 +323,30 @@ def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRow
         os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
 
     file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
-    # writer = csv.writer(file, quoting=csv.QUOTE_NONNUMERIC)
     writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
-    # writer = csv.writer(file, quoting=csv.QUOTE_NONE, quotechar="", escapechar="?")
 
     # Get column Headings
 
     out_row = []
     patient_col = []
     event_col = []
+    xml_row = []
     out_row.append("event_id")
+    xml_row.append(("event_id",3)) # Integer
     out_row.append("event_start_date")
+    xml_row.append(("event_start_date",7)) # datetime
 
     for EventPatientAttributeSummaryRow in EventPatientAttributeSummaryRows:
-        out_row.append(get_column_heading(EventPatientAttributeSummaryRow.label))
+        column_name = get_column_heading(EventPatientAttributeSummaryRow.label)
+        out_row.append(column_name)
         patient_col.append(EventPatientAttributeSummaryRow.patient_attribute_type_concept_id)
+        xml_row.append((column_name,EventPatientAttributeSummaryRow.value_type_concept_id))
 
     for EventAttributeSummaryRow in EventAttributeSummaryRows:
-        out_row.append(get_column_heading(EventAttributeSummaryRow.label))
+        column_name = get_column_heading(EventAttributeSummaryRow.label)
+        out_row.append(column_name)
         event_col.append(EventAttributeSummaryRow.event_attribute_type_concept_id)
+        xml_row.append((column_name,EventAttributeSummaryRow.value_type_concept_id))
 
     writer.writerow(out_row)
 
@@ -392,18 +363,19 @@ def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRow
 
         # Check filters
         include_event = True
-        if len(EventPatientAttributeFilters) > 0:
+        if len(EventPatientAttributeFilterValues) > 0:
             include_event = False
             for EventPatientAttributeRow in EventPatientAttributeRows:
                 if EventPatientAttributeRow.event_id == EventRow.event_id:
-                    if EventPatientAttributeRow.value_concept_id in EventPatientAttributeFilters:
+                    if EventPatientAttributeRow.value_concept_id in EventPatientAttributeFilterValues:
                         include_event = True
 
-        if len(EventAttributeFilters) > 0:
+        # If already exclude by patient attributes can't add back in - This could be an option for OR
+        if include_event and len(EventAttributeFilterValues) > 0:
             include_event = False
             for EventAttributeRow in EventAttributeRows:
                 if EventAttributeRow.event_id == EventRow.event_id:
-                    if EventAttributeRow.value_concept_id in EventAttributeFilters:
+                    if EventAttributeRow.value_concept_id in EventAttributeFilterValues:
                         include_event = True
 
         if include_event:
@@ -473,6 +445,71 @@ def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRow
     print("")
     print("file closed")
 
+    #Create XML file
+
+    XMLLine =  '<?xml version="1.0" encoding="UTF-8"?>'
+    XMLLine += '<DatasetDefinition xmlns="http://aridhia-mgrid.com/ddf/2" TableName="' + file_name + '" Action="create">'
+    XMLLine += '<Title>' + file_name + '</Title>'
+    XMLLine += '<Format Delimiter="," TextQualifier="&quot;" Encoding="UTF-8" HeaderCase="leave alone" Header="true" CopyToFile="true" NullQualifier="NULL"/>'
+    XMLLine += '<Columns>'
+
+    for column in xml_row:
+
+        column_name = column[0]
+        value_type_concept_id = column[1]
+
+        if value_type_concept_id == 1:
+            column_type = "text"
+        elif value_type_concept_id == 3:  # INTEGER
+            column_type = "integer"
+        elif value_type_concept_id == 4:  # FLOAT
+            column_type = "double precision"
+        elif value_type_concept_id == 5:  # DATE
+            column_type = "date"
+        elif value_type_concept_id == 6:  # TIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 7:  # DATETIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 8:  # TEXT
+            column_type = "text"
+        elif value_type_concept_id == 9:  # BOOLEAN
+            column_type = "integer"
+        else:
+            column_type = "error type: " + str(column[1])
+
+        if ":FIRST_NAME:MIDDLE_NAMES:SURNAME:BIRTH_DATE:DEATH_DATE:POSTCODE:".find((":" + column_name + ":").upper()) >= 0:
+            column_deid_type = "drop"
+        elif ":HEALTH_IDENTIFIER:ALT_HEALTH_IDENTIFIER:STAFF_CODE:HOSPITAL_NO:".find((":" + column_name + ":").upper()) >= 0:
+            column_deid_type = "pseudonymize"
+        else:
+            column_deid_type = "keep"
+
+        # print(column_name, column_type, column_deid_type)
+
+        XMLLine += '<Column Name="' + column_name + '" Type="' + column_type + '" Deidentify="' + column_deid_type + '"/>'
+
+    XMLLine += '</Columns>'
+    XMLLine += '</DatasetDefinition>'
+
+    #Does file exist - if it does rename with time stamp
+    file_ext = ".xml"
+
+    # If file left over from last run - rename it, so start fresh.
+    if os.path.isfile(destination_folder + file_name + file_ext):
+        new_fname = file_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
+        os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
+
+    file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
+
+    print("")
+    print("Outputting to file: %s" % (destination_folder + file_name + file_ext))
+
+    file.write(XMLLine)
+
+    file.close()
+    print("")
+    print("file closed")
+
 
 def main():
 
@@ -485,11 +522,7 @@ def main():
 
     # create_rdv_complete(rep_cnxn, rep_crsr)
 
-    # create_rdv_selection_01(rep_cnxn, rep_crsr)
-
-    create_rdv_selection_02(rep_cnxn, rep_crsr)
-
-    # CreateHASCSVFiles(rep_cnxn, rep_crsr, destination_folder)
+    create_rdv_selection(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
 
