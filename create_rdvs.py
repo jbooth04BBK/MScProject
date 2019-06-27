@@ -49,25 +49,20 @@ def format_csv_output(value_type_concept_id, code, value_numeric, value_datetime
 
     return output_text
 
-def create_rdv_complete(cnxn, crsr):
+def getEventRows(cnxn, crsr):
 
-    '''
-
-    :param cnxn: Connection to database
-    :param crsr: Cursor for all SQL operations
-
-    '''
-
-    # Get list of event_ids
     SQLstring = "SELECT"
-    SQLstring += "       ha_events.event_id "
+    SQLstring += "       ha_events.event_id, "
+    SQLstring += "       ha_events.start_date "
     SQLstring += "FROM   ha_events "
     SQLstring += "ORDER BY "
     SQLstring += "       ha_events.event_id "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
-    EventRows = crsr.fetchall()
+    return crsr.fetchall()
+
+def getEventPatientAttributeSummaryRows(cnxn, crsr):
 
     # Get summary list of patient_ids
     SQLstring = "SELECT"
@@ -93,17 +88,15 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += ";"
 
     crsr.execute(SQLstring)
-    EventPatientAttributeSummaryRows = crsr.fetchall()
+    return crsr.fetchall()
 
-    for EventPatientAttributeSummaryRow in EventPatientAttributeSummaryRows:
-        print(EventPatientAttributeSummaryRow.label, EventPatientAttributeSummaryRow.records)
 
+def getEventPatientAttributeRows(cnxn, crsr):
 
     # get patient attributes values
 
     SQLstring = "SELECT"
     SQLstring += "       ha_events.event_id, "
-    SQLstring += "       ha_events.start_date, "
     SQLstring += "       ha_events.patient_id, "
     SQLstring += "       ha_events.event_type_concept_id, "
     SQLstring += "       ha_events.start_date, "
@@ -130,7 +123,9 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += ";"
 
     crsr.execute(SQLstring)
-    EventPatientAttributeRows = crsr.fetchall()
+    return crsr.fetchall()
+
+def getEventAttributeSummaryRows(cnxn, crsr):
 
     SQLstring = "SELECT "
     SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
@@ -153,16 +148,13 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += ";"
 
     crsr.execute(SQLstring)
-    EventAttributeSummaryRows = crsr.fetchall()
+    return crsr.fetchall()
 
-    for EventAttributeSummaryRow in EventAttributeSummaryRows:
-        print(EventAttributeSummaryRow.label, EventAttributeSummaryRow.records)
-
+def getEventAttributeRows(cnxn, crsr):
 
     # get all event attributes
     SQLstring = "SELECT "
     SQLstring += "       ha_events.event_id, "
-    SQLstring += "       ha_events.start_date, "
     SQLstring += "       ha_events.event_type_concept_id, "
     SQLstring += "       ha_event_attributes.event_attribute_id, "
     SQLstring += "       ha_event_attributes.event_attribute_type_concept_id, "
@@ -184,15 +176,58 @@ def create_rdv_complete(cnxn, crsr):
     SQLstring += ";"
 
     crsr.execute(SQLstring)
-    EventAttributeRows = crsr.fetchall()
+    return crsr.fetchall()
 
-    # for EventAttributeRow in EventAttributeRows:
-    #     print(EventAttributeRow.event_id)
+def create_rdv_selection_01(cnxn, crsr):
+
+    EventPatientAttributes = [44] # 44 = Age Category
+
+    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr)
+
+    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr)
+
+    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr)
+
+    EventAttributeRows = getEventAttributeRows(cnxn, crsr)
+
+    # Get list of event_ids
+    EventRows = getEventRows(cnxn, crsr)
+
+    file_name = "rdv_demo_selection_01"
+
+    create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows,
+               EventAttributeSummaryRows, EventAttributeRows)
+
+
+def create_rdv_complete(cnxn, crsr):
+
+    EventPatientAttributeSummaryRows = getEventPatientAttributeSummaryRows(cnxn, crsr)
+
+    EventPatientAttributeRows = getEventPatientAttributeRows(cnxn, crsr)
+
+    EventAttributeSummaryRows = getEventAttributeSummaryRows(cnxn, crsr)
+
+    EventAttributeRows = getEventAttributeRows(cnxn, crsr)
+
+    # Get list of event_ids
+    EventRows = getEventRows(cnxn, crsr)
+
+    file_name = "rdv_demo_complete"
+
+    create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows, EventAttributeSummaryRows, EventAttributeRows)
+
+def create_rdv(cnxn, crsr, file_name, EventRows, EventPatientAttributeSummaryRows, EventPatientAttributeRows, EventAttributeSummaryRows, EventAttributeRows):
+
+    '''
+
+    :param cnxn: Connection to database
+    :param crsr: Cursor for all SQL operations
+
+    '''
 
     # write to CSV file
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
-    file_name = "rdv_demo"
 
     #Does file exist - if it does rename with time stamp
     file_ext = ".csv"
@@ -207,14 +242,13 @@ def create_rdv_complete(cnxn, crsr):
     writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
     # writer = csv.writer(file, quoting=csv.QUOTE_NONE, quotechar="", escapechar="?")
 
-    crsr.execute(SQLstring)
-
     # Get column Headings
 
     out_row = []
     patient_col = []
     event_col = []
     out_row.append("event_id")
+    out_row.append("event_start_date")
 
     for EventPatientAttributeSummaryRow in EventPatientAttributeSummaryRows:
         out_row.append(get_column_heading(EventPatientAttributeSummaryRow.label))
