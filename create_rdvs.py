@@ -303,7 +303,10 @@ def create_rdv_new_attributes(cnxn, crsr):
 
     # Select Event Attribute Filters
     EventAttributeFilters = []
+    EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
     EventAttributeFilterValues = []
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "001"))
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "002"))
 
     file_name = "rdv_new_attributes"
 

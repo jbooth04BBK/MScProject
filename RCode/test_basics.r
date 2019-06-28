@@ -64,3 +64,23 @@ prop.table(table(data_test$cod2_summ))
 
 fit <- rpart(cod2_summ~., data = data_train, method = 'class')
 rpart.plot(fit)
+
+# predict(fitted_model, df, type = 'class')
+# arguments:
+#   - fitted_model: This is the object stored after model estimation. 
+# - df: Data frame used to make the prediction
+# - type: Type of prediction			
+#   - 'class': for classification			
+#   - 'prob': to compute the probability of each class			
+#   - 'vector': Predict the mean response at the node level	
+
+predict_unseen <-predict(fit, data_test, type = 'class')
+
+# Create confusion matrix
+table_mat <- table(data_test$cod2_summ, predict_unseen)
+table_mat
+
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+
+print(paste('Accuracy for test', accuracy_Test))
+
