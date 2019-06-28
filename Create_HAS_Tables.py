@@ -1310,12 +1310,12 @@ def CreateAttributeNoOfAttributes(cnxn, crsr):
         sys.stdout.write("\r \r {0}".format(str(row)))
         sys.stdout.flush()
 
-        AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Post Mortem", "ATTRIBUTES", "Number of attributes", "IN", EventAttributeRow.Attributes)
+        AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem", "ATTRIBUTES", "Number of attributes", "IN", EventAttributeRow.Attributes)
 
     print("")
     print("Done!")
 
-def CreateAttributeFromAttribute(cnxn, crsr):
+def CreateCOD2_SUMMAttributeFromCOD2Attribute(cnxn, crsr):
     '''
     :param cnxn:
     :param crsr:
@@ -1413,7 +1413,7 @@ def CreateAttributeFromAttribute(cnxn, crsr):
     EventAttributeRows = crsr.fetchall()
 
     row = 0
-    print("Processing Events - Attribute From Attribute")
+    print("Processing Events - COD2_SUMM Attribute From COD2 Attribute")
 
     for EventAttributeRow in EventAttributeRows:
 
@@ -1431,6 +1431,7 @@ def CreateAttributeFromAttribute(cnxn, crsr):
            code = "002"
            text = "Known"
 
+        # print(row, EventAttributeRow.code, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
         AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
 
     print("")
@@ -1577,6 +1578,7 @@ def CreateLabEvents(cnxn, crsr):
         if row >= MaxRows:
             break
 
+
 def create_reporting_attributes(cnxn, crsr):
     '''
     :param cnxn:
@@ -1584,6 +1586,11 @@ def create_reporting_attributes(cnxn, crsr):
     :return:
 
     '''
+
+    # Makre sure that PostMortem/Reporting exists - ToDo move to create_core_concepts
+    value_type_concept_id = GetConceptID(cnxn, crsr, "/", None, "Concept")
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+    parent_concept_id = GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "Reporting", "Reporting", value_type_concept_id)
 
     #Get all events
     SQLstring = "SELECT "
@@ -1596,8 +1603,8 @@ def create_reporting_attributes(cnxn, crsr):
     SQLstring += "    ha_concepts AS CO "
     SQLstring += "      ON EV.event_type_concept_id = CO.concept_id "
     SQLstring += "WHERE "
-    SQLstring += "  CO.category = '\Event Type' "
-    SQLstring += "  AND CO.code = 'PM' "
+    SQLstring += "  CO.category = '/Event/Observation' "
+    SQLstring += "  AND CO.code = 'PostMortem' "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
@@ -1623,7 +1630,7 @@ def create_reporting_attributes(cnxn, crsr):
             event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
-                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "ExternalExam", "External Examination", "TF", 1)
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "ExternalExam", "External Examination", "TF", 1)
 
             # Defined as having a Internal exam if Heart weight is greater than 0
             category = r"/EventAttribute/Observation/PostMortem/tblInternalExams"
@@ -1632,11 +1639,11 @@ def create_reporting_attributes(cnxn, crsr):
             event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
 
             if event_attribute_id != None:
-                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "InternalExam", "Internal Examination", "TF", 1)
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "InternalExam", "Internal Examination", "TF", 1)
 
             # Get number of samples taken
-            category = r"\Event Type"
-            code = r"ST"
+            category = r"/Event/Observation"
+            code = r"LAB_EPISODE"
 
             events = CountPatientEventID(cnxn, crsr, EventRow.patient_id, category, code)
 
@@ -1970,23 +1977,23 @@ def main():
     res_cnxn = pyodbc.connect(res_conn_str)
     res_crsr = res_cnxn.cursor()
 
-    create_has_tables(rep_cnxn, rep_crsr)
+    # create_has_tables(rep_cnxn, rep_crsr)
 
     # runTests(rep_cnxn, rep_crsr)
 
-    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 1000)
+    # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 1000)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
 
-    # CreateAttributeFromAttribute(rep_cnxn, rep_crsr)
+    # CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
 
     # only for Post Mortem Events
     # CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
 
     # CreateLabEvents(rep_cnxn, rep_crsr)
 
-    # create_reporting_attributes(rep_cnxn, rep_crsr)
+    create_reporting_attributes(rep_cnxn, rep_crsr)
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
