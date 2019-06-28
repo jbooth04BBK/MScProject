@@ -282,6 +282,34 @@ def create_rdv_selection(cnxn, crsr):
     create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
+def create_rdv_new_attributes(cnxn, crsr):
+
+    # Select Patient Attributes
+    EventPatientAttributes = []
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Age Category
+
+    # Select Patient Attribute Filters
+    EventPatientAttributeFilters = []
+    EventPatientAttributeFilterValues = []
+
+    # Select Event Attributes
+    EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "Year")) # Year
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "ATTRIBUTES"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None, "ExternalExam"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None, "InternalExam"))
+
+    # Select Event Attribute Filters
+    EventAttributeFilters = []
+    EventAttributeFilterValues = []
+
+    file_name = "rdv_new_attributes"
+
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
+
+
 def create_rdv_complete(cnxn, crsr):
 
     file_name = "rdv_demo_complete"
@@ -522,7 +550,9 @@ def main():
 
     # create_rdv_complete(rep_cnxn, rep_crsr)
 
-    create_rdv_selection(rep_cnxn, rep_crsr)
+    # create_rdv_selection(rep_cnxn, rep_crsr)
+
+    create_rdv_new_attributes(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
 
