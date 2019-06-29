@@ -290,6 +290,9 @@ def create_rdv_ext_measurements(cnxn, crsr):
 
         # Select Patient Attributes
         EventPatientAttributes = []
+        if age_category not in ["001","002"]:
+            EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AG")) # Age in Daya
+        EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestation At Delivery In Days
 
         # Select Patient Attribute Filters
         EventPatientAttributeFilters = []
@@ -305,8 +308,23 @@ def create_rdv_ext_measurements(cnxn, crsr):
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
-        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftFootLength"))
-        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftLungWeight"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftFootLength"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "RightFootLength"))
+
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "HeartWeight"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "RightLungWeight"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LeftLungWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombLungWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LiverWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "PancreasWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThymusWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "SpleenWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombAdrenalWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThyroidWeight"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "RightKidneyWeight"))
+        # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LeftKidneyWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombKidneyWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "BrainWeight"))
 
         # Is this necessary if measurements were made we could use them.
         EventAttributeFilters = []

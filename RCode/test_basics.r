@@ -4,9 +4,9 @@
 # https://www.guru99.com/r-decision-trees.html
 #
 
+library(dplyr)
 library(rpart)
 library(rpart.plot)
-library(dplyr)
 
 set.seed(62)
 
