@@ -282,6 +282,45 @@ def create_rdv_selection(cnxn, crsr):
     create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
+def create_rdv_ext_measurements(cnxn, crsr):
+
+    age_categories = ["001","002","003","004","005","006"]
+
+    for age_category in age_categories:
+
+        # Select Patient Attributes
+        EventPatientAttributes = []
+
+        # Select Patient Attribute Filters
+        EventPatientAttributeFilters = []
+        EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Age Category
+        EventPatientAttributeFilterValues = []
+        EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, age_category)) # 44 = Age Category
+
+        # Select Event Attributes
+        EventAttributes = []
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftFootLength"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftLungWeight"))
+
+        # Is this necessary if measurements were made we could use them.
+        EventAttributeFilters = []
+        EventAttributeFilters.append(
+        Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,"COD2_SUMM"))
+        EventAttributeFilterValues = []
+        EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "001"))
+        EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "002"))
+
+        file_name = "rdv_" + age_category + "_ext_measurements"
+
+        create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
+
+
 def create_rdv_new_attributes(cnxn, crsr):
 
     # Select Patient Attributes
@@ -555,7 +594,9 @@ def main():
 
     # create_rdv_selection(rep_cnxn, rep_crsr)
 
-    create_rdv_new_attributes(rep_cnxn, rep_crsr)
+    # create_rdv_new_attributes(rep_cnxn, rep_crsr)
+
+    create_rdv_ext_measurements(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
 
