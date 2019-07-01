@@ -269,12 +269,12 @@ def create_rdv_selection(cnxn, crsr):
     EventPatientAttributeFilters = []
     EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
     EventPatientAttributeFilterValues = []
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "001")) # 44 = Age Category - infant death
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "002")) # 44 = Age Category - infant death
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "003")) # 44 = Age Category - infant death
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004")) # 44 = Age Category - infant death
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005")) # 44 = Age Category - infant death
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006")) # 44 = Age Category - child death
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "001"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "002"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "003"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006"))
 
     # Select Event Attributes
     EventAttributes = []
@@ -297,7 +297,7 @@ def create_rdv_selection(cnxn, crsr):
     create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
-def create_rdv_ext_measurements(cnxn, crsr):
+def create_rdv_ac_measurements(cnxn, crsr):
 
     age_categories = ["001","002","003","004","005","006"]
 
@@ -351,6 +351,62 @@ def create_rdv_ext_measurements(cnxn, crsr):
         file_name = "rdv_" + age_category + "_ext_measurements"
 
         create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
+
+
+def create_rdv_measurements(cnxn, crsr):
+
+    # Select Patient Attributes
+    EventPatientAttributes = []
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AG")) # Age in Days
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestation At Delivery In Days
+
+    # Select Patient Attribute Filters
+    EventPatientAttributeFilters = []
+    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Age Category
+    EventPatientAttributeFilterValues = []
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "001"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "002"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "003"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005"))
+    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006"))
+
+    # Select Event Attributes
+    EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "LeftFootLength"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "RightFootLength"))
+
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "HeartWeight"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "RightLungWeight"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LeftLungWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombLungWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LiverWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "PancreasWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThymusWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "SpleenWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombAdrenalWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThyroidWeight"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "RightKidneyWeight"))
+    # EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LeftKidneyWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombKidneyWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "BrainWeight"))
+
+    # Is this necessary if measurements were made we could use them.
+    EventAttributeFilters = []
+    EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,"COD2_SUMM"))
+    EventAttributeFilterValues = []
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "001"))
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "002"))
+
+    file_name = "rdv_" + "measurements"
+
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
 def create_rdv_new_attributes(cnxn, crsr):
@@ -486,7 +542,7 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
             out_row = []
             out_row.append(EventRow.event_id)
             out_row.append('{0:%Y-%m-%d %H:%M:%S}'.format(EventRow.start_date))
-            out_row.append(EventRow.sex)
+            out_row.append(EventRow.sex.upper())
 
             # For each event process list of patient_attributes
             column_pos = 0
@@ -509,12 +565,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("") # NULL
+                            out_row.append("NULL") # NULL
                         column_pos += 1
             # may be the last attribute missing
             if column_pos <= len(patient_col)-1:
                 for col in range(column_pos,len(patient_col)):
-                    out_row.append("") # NULL
+                    out_row.append("NULL") # NULL
 
             # For each event process list of event_attributes
             column_pos = 0
@@ -537,12 +593,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("") # NULL
+                            out_row.append("NULL") # NULL
                         column_pos += 1
             # may be the last attributes missing
             if column_pos <= len(event_col)-1:
                 for col in range(column_pos,len(event_col)):
-                    out_row.append("") # NULL
+                    out_row.append("NULL") # NULL
 
             writer.writerow(out_row)
 
@@ -627,11 +683,11 @@ def main():
 
     # create_rdv_complete(rep_cnxn, rep_crsr)
 
-    create_rdv_selection(rep_cnxn, rep_crsr)
-
     # create_rdv_new_attributes(rep_cnxn, rep_crsr)
 
-    # create_rdv_ext_measurements(rep_cnxn, rep_crsr)
+    create_rdv_selection(rep_cnxn, rep_crsr)
+
+    create_rdv_measurements(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
 
