@@ -1631,6 +1631,8 @@ def create_reporting_attributes(cnxn, crsr):
 
             if event_attribute_id != None:
                 AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "ExternalExam", "External Examination", "TF", 1)
+            else:
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "ExternalExam", "External Examination", "TF", 0)
 
             # Defined as having a Internal exam if Heart weight is greater than 0
             category = r"/EventAttribute/Observation/PostMortem/tblInternalExams"
@@ -1640,6 +1642,8 @@ def create_reporting_attributes(cnxn, crsr):
 
             if event_attribute_id != None:
                 AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "InternalExam", "Internal Examination", "TF", 1)
+            else:
+                AddEventAttribute(cnxn, crsr, EventRow.event_id, r"Observation/PostMortem/Reporting", "InternalExam", "Internal Examination", "TF", 0)
 
             # Get number of samples taken
             category = r"/Event/Observation"
