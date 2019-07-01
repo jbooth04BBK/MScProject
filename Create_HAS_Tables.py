@@ -1664,6 +1664,8 @@ def create_reporting_attributes(cnxn, crsr):
 
                 if events != None:
                     AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "MICRO", "Microbiology Tests", "TF", 1)
+                else:
+                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "MICRO", "Microbiology Tests", "TF", 0)
 
                 # Defined as having Microbiology if any Test Sets B*
                 category = r"/Event/Observation"
@@ -1674,6 +1676,8 @@ def create_reporting_attributes(cnxn, crsr):
 
                 if events != None:
                     AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "VIROLOGY", "Virology Tests", "TF", 1)
+                else:
+                    AddEventAttribute(cnxn, crsr, EventRow.event_id, r"PostMortem/Reporting", "VIROLOGY", "Virology Tests", "TF", 0)
 
     print("")
     print("Done!")
