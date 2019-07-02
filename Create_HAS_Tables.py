@@ -1822,7 +1822,7 @@ def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
         if CaseRow.SeasonID > 0:
             AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblCases", "SSN", "Season", "ID", CaseRow.SeasonID, CaseRow.SeasonText)
         if not pandas.isnull(CaseRow.DateAutopsy):
-            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblAutopsy", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
+            AddEventAttribute(cnxn, crsr, event_id, "Observation/PostMortem/tblAutopsies", "AD", "Autopsy Date", "DT", CaseRow.DateAutopsy)
 
         CreateEventAttributes(cnxn, crsr, res_crsr, ReportTableRows, ReportTableFieldRows, CaseRow.CaseID, event_id, "Observation/PostMortem")
 
@@ -1985,25 +1985,25 @@ def main():
     res_cnxn = pyodbc.connect(res_conn_str)
     res_crsr = res_cnxn.cursor()
 
-    # create_has_tables(rep_cnxn, rep_crsr)
+    create_has_tables(rep_cnxn, rep_crsr)
 
     # runTests(rep_cnxn, rep_crsr)
 
-    # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 1000)
+    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 3000)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
 
-    # CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
+    CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
 
     # only for Post Mortem Events
-    # CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
+    CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
 
     # CreateLabEvents(rep_cnxn, rep_crsr)
 
     create_reporting_attributes(rep_cnxn, rep_crsr)
 
-    destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
+    # destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
     # CreateHASCSVFiles(rep_cnxn, rep_crsr, destination_folder)
 
