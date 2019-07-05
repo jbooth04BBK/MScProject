@@ -278,6 +278,7 @@ def create_rdv_selection(cnxn, crsr):
 
     # Select Event Attributes
     EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "Year")) # Year
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
@@ -317,6 +318,9 @@ def create_rdv_ac_measurements(cnxn, crsr):
 
         # Select Event Attributes
         EventAttributes = []
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None,"CASEID"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None,"ExternalExam"))
+        EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None,"InternalExam"))
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
         EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
@@ -373,6 +377,7 @@ def create_rdv_measurements(cnxn, crsr):
 
     # Select Event Attributes
     EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
@@ -421,6 +426,7 @@ def create_rdv_new_attributes(cnxn, crsr):
 
     # Select Event Attributes
     EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "Year")) # Year
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "SSN")) # Season
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
@@ -542,7 +548,10 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
             out_row = []
             out_row.append(EventRow.event_id)
             out_row.append('{0:%Y-%m-%d %H:%M:%S}'.format(EventRow.start_date))
-            out_row.append(EventRow.sex.upper())
+            if not pandas.isnull(EventRow.sex):
+                out_row.append(EventRow.sex.upper())
+            else:
+                out_row.append("U")
 
             # For each event process list of patient_attributes
             column_pos = 0
@@ -685,7 +694,7 @@ def main():
 
     # create_rdv_new_attributes(rep_cnxn, rep_crsr)
 
-    create_rdv_selection(rep_cnxn, rep_crsr)
+    # create_rdv_selection(rep_cnxn, rep_crsr)
 
     create_rdv_measurements(rep_cnxn, rep_crsr)
 

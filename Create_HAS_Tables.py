@@ -432,6 +432,68 @@ def GetEventAttributeID(cnxn, crsr, event_id, category, code):
     return crsr.fetchone()
 
 
+def update_event_attribute_value(cnxn, crsr, caseid, category, code, value):
+    '''
+    Gets Event Attribute id
+    :param cnxn: ODBC Connection
+    :param crsr: ODBC Cursor
+    :return: integer/None
+    '''
+
+    # Get event Id from case id
+    event_attribute_type_concept_id = GetConceptID(cnxn, crsr,"/EventAttribute/Observation/PostMortem/tblCases", None,"CASEID")
+
+    SQLstring = r"SELECT "
+    SQLstring += r"  event_id "
+    SQLstring += r"FROM ha_event_attributes AS EA"
+    SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
+    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id "
+    SQLstring += r"WHERE "
+    SQLstring += r"  EA.value_numeric = " + return_null_number(caseid) + " "
+    SQLstring += r"  AND CO.category = '/EventAttribute/Observation/PostMortem/tblCases' "
+    SQLstring += r"  AND CO.code = 'CASEID' "
+    SQLstring += r";"
+
+    crsr.execute(SQLstring)
+
+    event_id = crsr.fetchone()[0]
+
+    #get value_type_concept_id for event_type to be changed
+    SQLstring = "SELECT "
+    SQLstring += "  value_type_concept_id "
+    SQLstring += "FROM "
+    SQLstring += "  ha_concepts "
+    SQLstring += "WHERE "
+    SQLstring += "  category = '" + category + "' "
+    SQLstring += "  AND code = '" + code + "'"
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+
+    value_type_concept_id = crsr.fetchone()[0]
+
+    # Update value in event_attribute table
+
+    SQLstring = r"UPDATE ha_event_attributes AS EA "
+    SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
+    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id "
+
+    if value_type_concept_id == 4:
+        SQLstring += r"  SET value_numeric = " + return_null_number(value) + " "
+
+    SQLstring += r"WHERE "
+    SQLstring += r"  EA.event_id = " + return_null_number(event_id) + " "
+    SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
+    SQLstring += r"  AND CO.code = " + return_null_string(code) + " "
+    SQLstring += r";"
+
+    crsr.execute(SQLstring)
+
+    cnxn.commit()
+
+    pass
+
+
 def CountPatientEventID(cnxn, crsr, patient_id, category, code, value_code = None):
     '''
     Gets Event Attribute id
@@ -1683,6 +1745,57 @@ def create_reporting_attributes(cnxn, crsr):
     print("Done!")
 
 
+def check_measurements(cnxn, crsr):
+    '''
+    :param cnxn:
+    :param crsr:
+    :return:
+
+    '''
+
+    #Get all events
+    SQLstring = "SELECT "
+    SQLstring += "  event_id, "
+    SQLstring += "  patient_id, "
+    SQLstring += "  start_date "
+    SQLstring += "FROM "
+    SQLstring += "  ha_events AS EV "
+    SQLstring += "  INNER JOIN "
+    SQLstring += "    ha_concepts AS CO "
+    SQLstring += "      ON EV.event_type_concept_id = CO.concept_id "
+    SQLstring += "WHERE "
+    SQLstring += "  CO.category = '/Event/Observation' "
+    SQLstring += "  AND CO.code = 'PostMortem' "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+
+    EventRows = crsr.fetchall()
+
+    row = 0
+    start_row = 0
+
+    print("Processing Events - Checking Measurements")
+
+    for EventRow in EventRows:
+
+        row += 1
+        print(row, EventRow.patient_id)
+
+        if row >= start_row:
+
+            #Defined as having a External exam if Body weight is greater than 0
+            category = r"/EventAttribute/Observation/PostMortem/tblExternalExams"
+            code = r"BodyWeight"
+
+            event_attribute_id = GetEventAttributeID(cnxn, crsr, EventRow.event_id, category, code)
+
+            if event_attribute_id != None:
+                pass
+
+    print("")
+    print("Done!")
+
 def CreateEvents(cnxn, crsr, res_crsr, max_rows = 999999):
 
     global gbl_add_event_time
@@ -1985,23 +2098,23 @@ def main():
     res_cnxn = pyodbc.connect(res_conn_str)
     res_crsr = res_cnxn.cursor()
 
-    create_has_tables(rep_cnxn, rep_crsr)
+    # create_has_tables(rep_cnxn, rep_crsr)
 
     # runTests(rep_cnxn, rep_crsr)
 
-    CreateEvents(rep_cnxn, rep_crsr, res_crsr, 3000)
+    # CreateEvents(rep_cnxn, rep_crsr, res_crsr, 999999)
 
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
 
-    CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
+    # CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
 
     # only for Post Mortem Events
-    CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
+    # CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
 
     # CreateLabEvents(rep_cnxn, rep_crsr)
 
-    create_reporting_attributes(rep_cnxn, rep_crsr)
+    # create_reporting_attributes(rep_cnxn, rep_crsr)
 
     # destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
