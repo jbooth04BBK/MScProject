@@ -458,7 +458,11 @@ def get_event_attribute_value(cnxn, crsr, event_id, category, code):
 
     crsr.execute(SQLstring)
 
-    return crsr.fetchone()[0]
+    return_value =  crsr.fetchone()
+    if pandas.isnull(return_value):
+        return return_value
+    else:
+        return return_value[0]
 
 
 def update_event_attribute_value(cnxn, crsr, caseid, category, code, value):
@@ -519,8 +523,6 @@ def update_event_attribute_value(cnxn, crsr, caseid, category, code, value):
     crsr.execute(SQLstring)
 
     cnxn.commit()
-
-    pass
 
 
 def CountPatientEventID(cnxn, crsr, patient_id, category, code, value_code = None):

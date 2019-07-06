@@ -327,7 +327,7 @@ def create_attribute_inc_in_study(cnxn, crsr):
 
     # Get all events
     SQLstring = "SELECT "
-    SQLstring += "  event_id, "
+    SQLstring += "  event_id "
     SQLstring += "FROM ha_event_attributes "
     SQLstring += "GROUP BY "
     SQLstring += "  event_id "
@@ -337,19 +337,23 @@ def create_attribute_inc_in_study(cnxn, crsr):
     EventAttributeRows = crsr.fetchall()
 
     row = 0
+    inserted = 0
+    updated = 0
     print("Processing Events - Inc in study")
     for EventAttributeRow in EventAttributeRows:
 
         row += 1
-        sys.stdout.write("\r \r {0}".format(str(row)))
-        sys.stdout.flush()
-
         # get value if exists
         value = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem", "INC_IN_STUDY")
         if pandas.isnull(value):
             Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem", "INC_IN_STUDY", "Include in study", "TF", 1)
+            inserted += 1
         elif value != 1:
             Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 1)
+            updated += 1
+
+        sys.stdout.write("\r \r {0}, {1}, {2}".format(str(row), str(inserted), str(updated)))
+        sys.stdout.flush()
 
     print("")
     print("Done!")
@@ -377,7 +381,7 @@ def main():
 
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
-    create_attribute_inc_in_study(rep_cnxn, rep_crsr)
+    # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
     res_cnxn.close()
