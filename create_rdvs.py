@@ -452,6 +452,39 @@ def create_rdv_complete(cnxn, crsr):
 
     create_rdv(cnxn, crsr, file_name)
 
+def create_rdv_study_ex(cnxn, crsr):
+
+    # Select Patient Attributes
+    EventPatientAttributes = []
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AG")) # Age in Days
+
+    # Select Patient Attribute Filters
+    EventPatientAttributeFilters = []
+    EventPatientAttributeFilterValues = []
+
+    # Select Event Attributes
+    EventAttributes = []
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
+
+
+    # Is this necessary if measurements were made we could use them.
+    EventAttributeFilters = []
+    EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,"COD2_SUMM"))
+    EventAttributeFilterValues = []
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "001"))
+    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None, "002"))
+
+    file_name = "rdv_" + "measurements"
+
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
+
+
 def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientAttributeFilters = [], EventPatientAttributeFilterValues = [], EventAttributes = [], EventAttributeFilters = [], EventAttributeFilterValues = []):
 
     '''
@@ -697,6 +730,8 @@ def main():
     # create_rdv_selection(rep_cnxn, rep_crsr)
 
     create_rdv_measurements(rep_cnxn, rep_crsr)
+
+    create_rdv_study_ext(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
 

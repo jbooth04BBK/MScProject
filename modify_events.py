@@ -321,9 +321,16 @@ def create_attribute_inc_in_study(cnxn, crsr):
 
     '''
     # Make sure that PostMortem/INC_IN_STUDY exists - ToDo move to create_core_concepts
-    value_type_concept_id = Create_HAS_Tables.GetValueTypeConceptId(cnxn, crsr, "TF")
+    value_type_concept_id = Create_HAS_Tables.GetValueTypeConceptId(cnxn, crsr, "ID")
     parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
     parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "INC_IN_STUDY", "Include in study", value_type_concept_id)
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "INC_IN_STUDY", "Include in study", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "001", "Include in study", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "002", "Exclude - COD", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "003", "Exclude - Age", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "004", "Exclude - Incorrect Measurement", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "005", "Exclude - Missing value", value_type_concept_id)
 
     # Get all events
     SQLstring = "SELECT "
@@ -346,10 +353,11 @@ def create_attribute_inc_in_study(cnxn, crsr):
         # get value if exists
         value = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem", "INC_IN_STUDY")
         if pandas.isnull(value):
-            Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem", "INC_IN_STUDY", "Include in study", "TF", 1)
+            Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem", "INC_IN_STUDY", "Include in study", "ID", "001")
             inserted += 1
         elif value != 1:
-            Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 1)
+            caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+            Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "001")
             updated += 1
 
         sys.stdout.write("\r \r {0}, {1}, {2}".format(str(row), str(inserted), str(updated)))
@@ -392,18 +400,22 @@ def exclude_event_attributes(cnxn, crsr):
         value = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id, "/PatientAttribute", "AC")
         if not pandas.isnull(value):
             if value == "001":
-                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
                 excluded += 1
             elif value == "002":
-                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY",0)
+                caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY",0)
                 excluded += 1
             elif value == "006":
                 age_in_days = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id,"/PatientAttribute", "AG")
                 if pandas.isnull(age_in_days):
-                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
                     excluded += 1
                 elif age_in_days > 730:
-                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
                     excluded += 1
 
         sys.stdout.write("\r \r {0}, {1}".format(str(row), str(excluded)))
@@ -436,9 +448,9 @@ def main():
 
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
-    # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
+    create_attribute_inc_in_study(rep_cnxn, rep_crsr)
 
-    exclude_event_attributes
+    # exclude_event_attributes(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
     res_cnxn.close()

@@ -446,10 +446,14 @@ def get_event_attribute_value(cnxn, crsr, event_id, category, code):
 
     if value_type_concept_id in [3,4,9]:
         SQLstring += r"  value_numeric "
+    elif value_type_concept_id == 1:
+        SQLstring += r"  CO_VAL.code "
 
-    SQLstring += r"FROM ha_event_attributes AS EA"
+    SQLstring += r"FROM (ha_event_attributes AS EA"
     SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
-    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id "
+    SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id) "
+    SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO_VAL "
+    SQLstring += r"    ON CO_VAL.concept_id = EA.value_concept_id "
     SQLstring += r"WHERE "
     SQLstring += r"  EA.event_id = " + return_null_number(event_id) + " "
     SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
@@ -479,7 +483,7 @@ def get_patient_attribute_value(cnxn, crsr, event_id, category, code):
 
     if value_type_concept_id in [3,4,9]:
         SQLstring += r"  value_numeric "
-    elif value_type_concept_id in [3,4,9]:
+    elif value_type_concept_id == 1:
         SQLstring += r"  CO_VAL.code "
 
     SQLstring += r"FROM (ha_patient_attributes AS PA"
@@ -548,8 +552,10 @@ def update_event_attribute_value(cnxn, crsr, caseid, category, code, value):
     SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
     SQLstring += r"    ON CO.concept_id = EA.event_attribute_type_concept_id "
 
-    if value_type_concept_id == 4:
+    if value_type_concept_id in [3,4,9]:
         SQLstring += r"  SET value_numeric = " + return_null_number(value) + " "
+    elif value_type_concept_id == 1:
+        SQLstring += r"  SET value_concept_id = " + return_null_number(GetConceptID(cnxn, crsr, category + "/LookUp/" + code, None, value)) + " "
 
     SQLstring += r"WHERE "
     SQLstring += r"  EA.event_id = " + return_null_number(event_id) + " "
