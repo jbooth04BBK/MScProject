@@ -358,6 +358,61 @@ def create_attribute_inc_in_study(cnxn, crsr):
     print("")
     print("Done!")
 
+def exclude_event_attributes(cnxn, crsr):
+    '''
+    :param cnxn:
+    :param crsr:
+
+    1. Check all inc_in_study set to T
+    2. Exclude on basis of age_category and if age_category = 006 then age_in_days > 730
+    3. Exclude out layer measurements
+    4.
+
+    '''
+
+    # create_attribute_inc_in_study(cnxn, crsr)
+
+    # Get all events
+    SQLstring = "SELECT "
+    SQLstring += "  event_id, "
+    SQLstring += "  patient_id "
+    SQLstring += "FROM ha_events "
+    SQLstring += ";"
+
+    crsr.execute(SQLstring)
+    EventAttributeRows = crsr.fetchall()
+
+    row = 0
+    excluded = 0
+    print("Processing Events - Exclude from study")
+    for EventAttributeRow in EventAttributeRows:
+
+        row += 1
+        # get value if exists
+        value = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id, "/PatientAttribute", "AC")
+        if not pandas.isnull(value):
+            if value == "001":
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                excluded += 1
+            elif value == "002":
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY",0)
+                excluded += 1
+            elif value == "006":
+                age_in_days = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id,"/PatientAttribute", "AG")
+                if pandas.isnull(age_in_days):
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                    excluded += 1
+                elif age_in_days > 730:
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
+                    excluded += 1
+
+        sys.stdout.write("\r \r {0}, {1}".format(str(row), str(excluded)))
+        sys.stdout.flush()
+
+    print("")
+    print("Done!")
+    pass
+
 def main():
 
     rep_conn_str = (
@@ -382,6 +437,8 @@ def main():
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
     # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
+
+    exclude_event_attributes
 
     rep_cnxn.close()
     res_cnxn.close()

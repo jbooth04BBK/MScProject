@@ -465,6 +465,43 @@ def get_event_attribute_value(cnxn, crsr, event_id, category, code):
         return return_value[0]
 
 
+def get_patient_attribute_value(cnxn, crsr, event_id, category, code):
+    '''
+    Gets Event Attribute value
+    :param cnxn: ODBC Connection
+    :param crsr: ODBC Cursor
+    :return: integer/None
+    '''
+
+    value_type_concept_id = get_ea_value_type_concept_id(cnxn, crsr, category, code)
+
+    SQLstring = r"SELECT "
+
+    if value_type_concept_id in [3,4,9]:
+        SQLstring += r"  value_numeric "
+    elif value_type_concept_id in [3,4,9]:
+        SQLstring += r"  CO_VAL.code "
+
+    SQLstring += r"FROM (ha_patient_attributes AS PA"
+    SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO "
+    SQLstring += r"    ON CO.concept_id = PA.patient_attribute_type_concept_id) "
+    SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO_VAL "
+    SQLstring += r"    ON CO_VAL.concept_id = PA.value_concept_id "
+    SQLstring += r"WHERE "
+    SQLstring += r"  PA.patient_id = " + return_null_number(event_id) + " "
+    SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
+    SQLstring += r"  AND CO.code = " + return_null_string(code) + " "
+    SQLstring += r";"
+
+    crsr.execute(SQLstring)
+
+    return_value =  crsr.fetchone()
+    if pandas.isnull(return_value):
+        return return_value
+    else:
+        return return_value[0]
+
+
 def update_event_attribute_value(cnxn, crsr, caseid, category, code, value):
     '''
     Gets Event Attribute id
