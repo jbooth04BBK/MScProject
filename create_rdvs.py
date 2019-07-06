@@ -454,7 +454,7 @@ def create_rdv_complete(cnxn, crsr):
 
     create_rdv(cnxn, crsr, file_name)
 
-def create_rdv_study_ext(cnxn, crsr):
+def create_rdv_study_ext(cnxn, crsr, include_null = True):
 
     # Select Patient Attributes
     EventPatientAttributes = []
@@ -468,6 +468,7 @@ def create_rdv_study_ext(cnxn, crsr):
     # Select Event Attributes
     EventAttributes = []
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
@@ -491,12 +492,15 @@ def create_rdv_study_ext(cnxn, crsr):
     EventAttributeFilterValues = []
     EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", None, "001"))
 
-    file_name = "rdv_" + "study_ext"
+    if include_null:
+        file_name = "rdv_" + "study_ext_null"
+    else:
+        file_name = "rdv_" + "study_ext"
 
-    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues, include_null)
 
 
-def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientAttributeFilters = [], EventPatientAttributeFilterValues = [], EventAttributes = [], EventAttributeFilters = [], EventAttributeFilterValues = []):
+def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientAttributeFilters = [], EventPatientAttributeFilterValues = [], EventAttributes = [], EventAttributeFilters = [], EventAttributeFilterValues = [], include_null = True):
 
     '''
 
@@ -504,6 +508,11 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     :param crsr: Cursor for all SQL operations
 
     '''
+
+    if include_null:
+        null_string = "NULL"
+    else:
+        null_string = ""
 
     # Get rows
 
@@ -618,12 +627,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("NULL") # NULL
+                            out_row.append(null_string) # NULL
                         column_pos += 1
             # may be the last attribute missing
             if column_pos <= len(patient_col)-1:
                 for col in range(column_pos,len(patient_col)):
-                    out_row.append("NULL") # NULL
+                    out_row.append(null_string) # NULL
 
             # For each event process list of event_attributes
             column_pos = 0
@@ -646,12 +655,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("NULL") # NULL
+                            out_row.append(null_string) # NULL
                         column_pos += 1
             # may be the last attributes missing
             if column_pos <= len(event_col)-1:
                 for col in range(column_pos,len(event_col)):
-                    out_row.append("NULL") # NULL
+                    out_row.append(null_string) # NULL
 
             writer.writerow(out_row)
 
@@ -742,7 +751,8 @@ def main():
 
     # create_rdv_measurements(rep_cnxn, rep_crsr)
 
-    create_rdv_study_ext(rep_cnxn, rep_crsr)
+    create_rdv_study_ext(rep_cnxn, rep_crsr,False)
+    create_rdv_study_ext(rep_cnxn, rep_crsr,True)
 
     rep_cnxn.close()
 
