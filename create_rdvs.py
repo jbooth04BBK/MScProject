@@ -574,12 +574,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("NULL") # NULL
+                            out_row.append("") # NULL
                         column_pos += 1
             # may be the last attribute missing
             if column_pos <= len(patient_col)-1:
                 for col in range(column_pos,len(patient_col)):
-                    out_row.append("NULL") # NULL
+                    out_row.append("") # NULL
 
             # For each event process list of event_attributes
             column_pos = 0
@@ -602,12 +602,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append("NULL") # NULL
+                            out_row.append("") # NULL
                         column_pos += 1
             # may be the last attributes missing
             if column_pos <= len(event_col)-1:
                 for col in range(column_pos,len(event_col)):
-                    out_row.append("NULL") # NULL
+                    out_row.append("") # NULL
 
             writer.writerow(out_row)
 
