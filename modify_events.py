@@ -378,8 +378,6 @@ def exclude_event_attributes(cnxn, crsr):
 
     '''
 
-    # create_attribute_inc_in_study(cnxn, crsr)
-
     # Get all events
     SQLstring = "SELECT "
     SQLstring += "  event_id, "
@@ -396,27 +394,82 @@ def exclude_event_attributes(cnxn, crsr):
     for EventAttributeRow in EventAttributeRows:
 
         row += 1
+        exclude_row = False
         # get value if exists
-        value = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id, "/PatientAttribute", "AC")
+        value = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM")
         if not pandas.isnull(value):
-            if value == "001":
+            if value not in ["001", "002"]:
+                caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid, "/EventAttribute/Observation/PostMortem","INC_IN_STUDY", "002")
+                exclude_row = True
+        else:
+            caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+            Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid, "/EventAttribute/Observation/PostMortem","INC_IN_STUDY", "002")
+            exclude_row = True
+
+        if not exclude_row:
+            value = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id, "/PatientAttribute", "AC")
+            if not pandas.isnull(value):
+                if value == "001":
+                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
+                    exclude_row = True
+                elif value == "002":
+                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
+                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
+                    exclude_row = True
+                elif value == "006":
+                    age_in_days = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id,"/PatientAttribute", "AG")
+                    if pandas.isnull(age_in_days):
+                        caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
+                        Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
+                        exclude_row = True
+                    elif age_in_days > 730:
+                        caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
+                        Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
+                        exclude_row = True
+
+        if not exclude_row:
+            # Check for any bad measurements
+            SQLstring = "SELECT "
+            SQLstring += "       RDV.event_id "
+            SQLstring += "FROM "
+            SQLstring += "       rdv_measurements AS RDV "
+            SQLstring += "WHERE "
+            SQLstring += "        (RDV.event_id = " + Create_HAS_Tables.return_null_number(EventAttributeRow.event_id) + ") "
+            SQLstring += "     AND ( "
+            SQLstring += "        (RDV.body_weight > 100000) "
+            SQLstring += "     OR (RDV.age_category = 'C006' AND  RDV.body_weight < 100) "
+            SQLstring += "	   OR (RDV.head_circumference > 100) "
+            SQLstring += "	   OR (RDV.crown_rump_length > 1000) "
+            SQLstring += "	   OR (RDV.body_length > 1000) "
+            SQLstring += "     OR (RDV.age_category = 'C006' AND  RDV.body_length < 10) "
+            SQLstring += "	   OR (RDV.foot_length > 50) "
+            SQLstring += "	   OR (RDV.heart_weight > 5000) "
+            SQLstring += "	   OR (RDV.comb_lung_weight > 5000) "
+            SQLstring += "	   OR (RDV.liver_weight > 5000) "
+            SQLstring += "     OR (RDV.age_category = 'C006' AND  RDV.liver_weight < 10) "
+            SQLstring += "	   OR (RDV.pancreas_weight > 5000) "
+            SQLstring += "	   OR (RDV.thymus_weight > 5000) "
+            SQLstring += "	   OR (RDV.spleen_weight > 5000) "
+            SQLstring += "	   OR (RDV.comb_adrenal_weight > 5000) "
+            SQLstring += "	   OR (RDV.thyroid_weight > 5000) "
+            SQLstring += "	   OR (RDV.thyroid_weight > 5000) "
+            SQLstring += "	   OR (RDV.comb_kidney_weight > 5000) "
+            SQLstring += "     OR (RDV.age_category = 'C006' AND RDV.comb_kidney_weight < 10) "
+            SQLstring += "	   OR (RDV.brain_weight > 5000) "
+            SQLstring += "     ) "
+            SQLstring += ";"
+
+            crsr.execute(SQLstring)
+            value = crsr.fetchone()
+            if value:
                 caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
-                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
-                excluded += 1
-            elif value == "002":
-                caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
-                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY",0)
-                excluded += 1
-            elif value == "006":
-                age_in_days = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id,"/PatientAttribute", "AG")
-                if pandas.isnull(age_in_days):
-                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
-                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
-                    excluded += 1
-                elif age_in_days > 730:
-                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id, "/EventAttribute/Observation/PostMortem/tblCases", "CASEID")
-                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", 0)
-                    excluded += 1
+                Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY","004")
+                exclude_row = True
+
+        if exclude_row:
+            excluded += 1
 
         sys.stdout.write("\r \r {0}, {1}".format(str(row), str(excluded)))
         sys.stdout.flush()
@@ -448,9 +501,9 @@ def main():
 
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
-    create_attribute_inc_in_study(rep_cnxn, rep_crsr)
+    # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
 
-    # exclude_event_attributes(rep_cnxn, rep_crsr)
+    exclude_event_attributes(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
     res_cnxn.close()

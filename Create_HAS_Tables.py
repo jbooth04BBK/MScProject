@@ -469,7 +469,7 @@ def get_event_attribute_value(cnxn, crsr, event_id, category, code):
         return return_value[0]
 
 
-def get_patient_attribute_value(cnxn, crsr, event_id, category, code):
+def get_patient_attribute_value(cnxn, crsr, patient_id, category, code):
     '''
     Gets Event Attribute value
     :param cnxn: ODBC Connection
@@ -492,7 +492,7 @@ def get_patient_attribute_value(cnxn, crsr, event_id, category, code):
     SQLstring += r"  LEFT OUTER JOIN ha_concepts AS CO_VAL "
     SQLstring += r"    ON CO_VAL.concept_id = PA.value_concept_id "
     SQLstring += r"WHERE "
-    SQLstring += r"  PA.patient_id = " + return_null_number(event_id) + " "
+    SQLstring += r"  PA.patient_id = " + return_null_number(patient_id) + " "
     SQLstring += r"  AND CO.category = " + return_null_string(category) + " "
     SQLstring += r"  AND CO.code = " + return_null_string(code) + " "
     SQLstring += r";"
