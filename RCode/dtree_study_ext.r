@@ -28,7 +28,7 @@ sum(is.na(RDVData$body_length))
 sum(is.na(RDVData$foot_length))
 sum(is.na(RDVData$signs_of_treatment_ynid))
 
-#Remove unwanted columns and factorise age_category & season
+#Remove unwanted columns
 clean_RDVData <- RDVData %>%
 select(-c(event_id, event_start_date, age_category, case_id, include_in_study, foot_length, crown_rump_length)) %>%
   na.omit()
