@@ -11,6 +11,7 @@ rm(list = ls())
 library(dplyr)
 library(rpart)
 library(rpart.plot)
+library(ggplot2)
 
 set.seed(62)
 
@@ -104,10 +105,37 @@ accuracy_tune <- function(fit) {
   accuracy_Test
 }
 
-control <- rpart.control(minsplit = 5,
-                         minbucket = round(5 / 3),
-                         maxdepth = 5,
-                         cp = 0)
-tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
+r_minsplit = seq(1,200,by=20)
+r_maxdepth = seq(1,10,by=1)
+row = 0
 
-accuracy_tune(tune_fit)
+accuracy_matrix = matrix(nrow=10,ncol=10)
+
+for (ms in r_minsplit) {
+  row = row + 1
+  col = 0
+  for (md in r_maxdepth) {
+    col = col + 1
+    control <- rpart.control(minsplit = ms,
+                             minbucket = round(ms / 3),
+                             maxdepth = md,
+                             cp = 0)
+    tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
+    
+    accuracy_matrix[row,col] = accuracy_tune(tune_fit)
+  }
+  if (row == 1) {
+   plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.7), pch=row-1, xlab= "maxdepth", ylab= "minsplit")
+  } else {
+   lines(accuracy_matrix[row,], type="o", pch=row-1)
+  }
+  
+}
+
+legend(9, 0.58, c("1","2","3","4","5","6","7","8","9","10"), cex = 0.8, pch = 0:9, lty = 1)
+
+title(main="rpart control variables", col.main="red", font.main=4)
+
+accuracy_matrix
+
+max(accuracy_matrix)

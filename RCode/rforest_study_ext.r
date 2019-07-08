@@ -61,3 +61,4 @@ prop.table(table(data_test$cod2_summ))
 trControl <- trainControl(method = "cv",
                           number = 10,
                           search = "grid")
+
