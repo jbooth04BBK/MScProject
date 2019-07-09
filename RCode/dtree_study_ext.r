@@ -109,6 +109,10 @@ r_minsplit = seq(1,200,by=20)
 r_maxdepth = seq(1,10,by=1)
 row = 0
 
+max_accuracy = 0
+max_minsplit = 0
+max_maxdepth = 0
+
 accuracy_matrix = matrix(nrow=10,ncol=10)
 
 for (ms in r_minsplit) {
@@ -121,11 +125,18 @@ for (ms in r_minsplit) {
                              maxdepth = md,
                              cp = 0)
     tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
-    
+
     accuracy_matrix[row,col] = accuracy_tune(tune_fit)
+    
+    if (accuracy_tune(tune_fit) > max_accuracy) {
+      max_accuracy = accuracy_tune(tune_fit)
+      max_minsplit = ms
+      max_maxdepth = md
+    }
+    
   }
   if (row == 1) {
-   plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.7), pch=row-1, xlab= "maxdepth", ylab= "minsplit")
+   plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.7), pch=row-1, xlab= "maxdepth", ylab= "accuracy")
   } else {
    lines(accuracy_matrix[row,], type="o", pch=row-1)
   }
@@ -136,6 +147,17 @@ legend(9, 0.58, c("1","2","3","4","5","6","7","8","9","10"), cex = 0.8, pch = 0:
 
 title(main="rpart control variables", col.main="red", font.main=4)
 
+print(paste('Max Accuracy for test', max_accuracy))
+print(paste('  For minsplit', max_minsplit))
+print(paste('      maxdepth', max_maxdepth))
+
 accuracy_matrix
 
-max(accuracy_matrix)
+control <- rpart.control(minsplit = max_minsplit,
+                         minbucket = round(max_minsplit / 3),
+                         maxdepth = max_maxdepth,
+                         cp = 0)
+tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
+
+rpart.plot(tune_fit)
+
