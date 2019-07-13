@@ -16,22 +16,24 @@ library(ggplot2)
 set.seed(62)
 
 # Read CSV into R
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_ext.csv", header=TRUE, sep=",")
-
-head(RDVData)
+RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1.csv", header=TRUE, sep=",")
 
 str(RDVData)
 
-sum(is.na(RDVData$body_weight))
-sum(is.na(RDVData$head_circumference))
-sum(is.na(RDVData$crown_rump_length))
-sum(is.na(RDVData$body_length))
-sum(is.na(RDVData$foot_length))
-sum(is.na(RDVData$signs_of_treatment_ynid))
+sum(is.na(RDVData$heart_weight))
+sum(is.na(RDVData$comb_lung_weight))
+sum(is.na(RDVData$liver_weight))
+sum(is.na(RDVData$pancreas_weight))
+sum(is.na(RDVData$thymus_weight))
+sum(is.na(RDVData$spleen_weight))
+sum(is.na(RDVData$comb_adrenal_weight))
+sum(is.na(RDVData$thyroid_weight))
+sum(is.na(RDVData$comb_kidney_weight))
+sum(is.na(RDVData$brain_weight))
 
 #Remove unwanted columns
 clean_RDVData <- RDVData %>%
-select(-c(event_id, event_start_date, age_category, case_id, include_in_study, foot_length, crown_rump_length)) %>%
+select(-c(event_id, event_start_date, age_category, case_id, include_in_study, foot_length, crown_rump_length, thymus_weight, thyroid_weight )) %>%
   na.omit()
 
 glimpse(clean_RDVData)
@@ -61,7 +63,6 @@ dim(data_test)
 
 prop.table(table(data_train$cod2_summ))
 prop.table(table(data_test$cod2_summ))
-summary(data_test$cod2_summ)
 
 # rpart(formula, data=, method='')
 # arguments:			
@@ -86,8 +87,6 @@ rpart.plot(fit)
 predict_unseen <-predict(fit, data_test, type = 'class')
 
 # Create confusion matrix
-summary(data_test$cod2_summ)
-summary(predict_unseen)
 table_mat <- table(data_test$cod2_summ, predict_unseen)
 table_mat
 
@@ -165,16 +164,4 @@ tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = co
 rpart.plot(tune_fit)
 
 accuracy_tune(tune_fit)
-
-predict_unseen <- predict(tune_fit, data_test, type = 'class')
-
-# Create confusion matrix
-summary(data_test$cod2_summ)
-summary(predict_unseen)
-table_mat <- table(data_test$cod2_summ, predict_unseen)
-table_mat
-
-accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
-
-print(paste('Accuracy for test', accuracy_Test))
 

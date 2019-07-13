@@ -12,6 +12,8 @@ library(randomForest)
 library(caret)
 library(e1071)
 
+source("study_functions.R")
+
 set.seed(62)
 
 # Read CSV into R
@@ -31,17 +33,6 @@ str(clean_RDVData)
 #  -train: If set to `TRUE`, the function creates the train set, otherwise the test set. Default value sets to `TRUE`. Boolean value.
 #   You need to add a Boolean parameter because R does not allow to return two data frames simultaneously.
 
-create_train_test <- function(data, size = 0.8, train = TRUE) {
-  n_row = nrow(data)
-  total_row = size * n_row
-  train_sample <- 1: total_row
-  if (train == TRUE) {
-    return (data[train_sample, ])
-  } else {
-    return (data[-train_sample, ])
-  }
-}
-
 data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
 data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
 dim(data_train)
@@ -49,6 +40,7 @@ dim(data_test)
 
 prop.table(table(data_train$cod2_summ))
 prop.table(table(data_test$cod2_summ))
+summary(data_test$cod2_summ)
 
 # trainControl(method = "cv", number = n, search ="grid")
 # arguments
@@ -65,8 +57,7 @@ trControl <- trainControl(method = "cv",
 # train(formula, df, method = "rf", metric= "Accuracy", trControl = trainControl(), tuneGrid = NULL)
 # argument
 # - `formula`: Define the formula of the algorithm
-# - `method`: Define which model to train. Note, at the end of the tutorial, there is a list
-#             of all the models that can be trained
+# - `method`: Define which model to train. 
 # - `metric` = "Accuracy": Define how to select the optimal model
 # - `trControl = trainControl()`: Define the control parameters
 # - `tuneGrid = NULL`: Return a data frame with all the possible combination
@@ -107,7 +98,7 @@ print(best_mtry)
 
 store_maxnode <- list()
 tuneGrid <- expand.grid(.mtry = best_mtry)
-for (maxnodes in c(5: 15)) {
+for (maxnodes in seq(4,30,by=2)) {
   set.seed(62)
   rf_maxnode <- train(cod2_summ~.,
                       data = data_train,
@@ -125,36 +116,15 @@ for (maxnodes in c(5: 15)) {
 results_mtry <- resamples(store_maxnode)
 summary(results_mtry)
 
-# Max accuracy was 0.734 with maxnodes = 15
-# Try higher max nodes
-
-store_maxnode <- list()
-tuneGrid <- expand.grid(.mtry = best_mtry)
-for (maxnodes in c(20: 30)) {
-  set.seed(62)
-  rf_maxnode <- train(cod2_summ~.,
-                      data = data_train,
-                      method = "rf",
-                      metric = "Accuracy",
-                      tuneGrid = tuneGrid,
-                      trControl = trControl,
-                      importance = TRUE,
-                      nodesize = 14,
-                      maxnodes = maxnodes,
-                      ntree = 300)
-  current_iteration <- toString(maxnodes)
-  store_maxnode[[current_iteration]] <- rf_maxnode
-}
-results_mtry <- resamples(store_maxnode)
-summary(results_mtry)
-
-# Max accuracy 0.745 with 23 Maxnodes
+# Max accuracy was 0.740 with maxnodes = 16
+best_maxnodes = 16
 
 # Now find best number of trees
 
 store_maxtrees <- list()
-for (ntree in c(150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 800, 1000)) {
-  set.seed(1234)
+# for (ntree in c(50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 800, 1000)) {
+for (ntree in c(5, 10, 15, 20, 25, 30, 35, 40, 45, 50)) {
+  set.seed(62)
   rf_maxtrees <- train(cod2_summ~.,
                        data = data_train,
                        method = "rf",
@@ -163,17 +133,18 @@ for (ntree in c(150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 800, 1000)) {
                        trControl = trControl,
                        importance = TRUE,
                        nodesize = 14,
-                       maxnodes = 23,
+                       maxnodes = best_maxnodes,
                        ntree = ntree)
   key <- toString(ntree)
   store_maxtrees[[key]] <- rf_maxtrees
   print(key)
-  print(rf_maxtrees)
+  # print(rf_maxtrees)
 }
 results_tree <- resamples(store_maxtrees)
 summary(results_tree)
 
-# Max accuracy of 0.750 with 800 trees
+# Max accuracy of 0.7457 with 30 trees
+best_maxtrees = 30
 
 # The best model
 set.seed(62)
@@ -185,11 +156,11 @@ fit_rf <- train(cod2_summ~.,
                 trControl = trControl,
                 importance = TRUE,
                 nodesize = 14,
-                maxnodes = 23,
-                ntree = 800)
+                maxnodes = best_maxnodes,
+                ntree = best_maxtrees)
 
 print(fit_rf)
-# Accuracy = 0.6917
+# Accuracy = 0.6838
 
 # predict(model, newdata= df)
 # argument
@@ -198,5 +169,11 @@ print(fit_rf)
 
 prediction <-predict(fit_rf, data_test)
 confusionMatrix(prediction, data_test$cod2_summ)
+
+# Create confusion matrix
+summary(data_test$cod2_summ)
+summary(prediction)
+table_mat <- table(data_test$cod2_summ, prediction)
+table_mat
 
 varImp(fit_rf)
