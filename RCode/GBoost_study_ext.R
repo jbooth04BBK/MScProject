@@ -1,6 +1,7 @@
 # References
 #
 # https://shirinsplayground.netlify.com/2018/11/ml_basics_gbm
+# https://rpubs.com/dalekube/XGBoost-Iris-Classification-Example-in-R
 #
 
 # Clear work space
@@ -50,7 +51,7 @@ model_gbm <- caret::train(cod2_summ ~ .,
 model_gbm
 
 #Importance of features
-summary(model_gbm)
+model_gbm.importance <- summary(model_gbm)
 
 caret::confusionMatrix(
   data = predict(model_gbm, data_test),

@@ -26,13 +26,6 @@ clean_RDVData <- RDVData %>%
 
 str(clean_RDVData)
 
-# create_train_test(df, size = 0.8, train = TRUE)
-# arguments:
-#  -df: Dataset used to train the model.
-#  -size: Size of the split. By default, 0.8. Numerical value
-#  -train: If set to `TRUE`, the function creates the train set, otherwise the test set. Default value sets to `TRUE`. Boolean value.
-#   You need to add a Boolean parameter because R does not allow to return two data frames simultaneously.
-
 data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
 data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
 dim(data_train)
@@ -176,4 +169,5 @@ summary(prediction)
 table_mat <- table(data_test$cod2_summ, prediction)
 table_mat
 
-varImp(fit_rf)
+fit_rf.importance <- varImp(fit_rf)$importance
+fit_rf.importance

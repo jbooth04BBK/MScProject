@@ -11,7 +11,7 @@ rm(list = ls())
 library(dplyr)
 library(rpart)
 library(rpart.plot)
-library(ggplot2)
+library(caret)
 
 set.seed(62)
 
@@ -73,6 +73,9 @@ summary(data_test$cod2_summ)
 
 fit <- rpart(cod2_summ~., data = data_train, method = 'class')
 rpart.plot(fit)
+
+fit.importance <- varImp(fit)
+fit.importance
 
 # predict(fitted_model, df, type = 'class')
 # arguments:
@@ -161,6 +164,9 @@ control <- rpart.control(minsplit = max_minsplit,
                          maxdepth = max_maxdepth,
                          cp = 0)
 tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
+
+tune_fit.importance <- varImp(tune_fit)
+tune_fit.importance
 
 rpart.plot(tune_fit)
 
