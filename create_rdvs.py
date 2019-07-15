@@ -804,13 +804,14 @@ def main():
 
     # create_rdv_selection(rep_cnxn, rep_crsr)
 
-    # create_rdv_measurements(rep_cnxn, rep_crsr)
+    create_rdv_measurements(rep_cnxn, rep_crsr,False)
+    create_rdv_measurements(rep_cnxn, rep_crsr,True)
 
     #create_rdv_study_ext(rep_cnxn, rep_crsr,False)
     #create_rdv_study_ext(rep_cnxn, rep_crsr,True)
 
-    create_rdv_study_int1(rep_cnxn, rep_crsr,False)
-    create_rdv_study_int1(rep_cnxn, rep_crsr,True)
+    #create_rdv_study_int1(rep_cnxn, rep_crsr,False)
+    #create_rdv_study_int1(rep_cnxn, rep_crsr,True)
 
     rep_cnxn.close()
 

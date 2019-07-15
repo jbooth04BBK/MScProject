@@ -329,7 +329,7 @@ def create_attribute_inc_in_study(cnxn, crsr):
     concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "001", "Include in study", value_type_concept_id)
     concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "002", "Exclude - COD", value_type_concept_id)
     concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "003", "Exclude - Age", value_type_concept_id)
-    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "004", "Exclude - Incorrect Measurement", value_type_concept_id)
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "004", "Exclude - Outlier Measurement", value_type_concept_id)
     concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", parent_concept_id, "005", "Exclude - Missing value", value_type_concept_id)
 
     # Get all events
