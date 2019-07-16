@@ -15,3 +15,11 @@ print(parent_code)
 EventAttributes = [47]
 myList = ','.join(map(str, EventAttributes))
 print(myList)
+
+test_type = 'String'
+if type(test_type) == type(''):
+    print(type(test_type))
+
+test_type = None
+if type(test_type) == type(None):
+    print(type(test_type))
