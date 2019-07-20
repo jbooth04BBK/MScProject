@@ -230,8 +230,8 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
-    SQLstring += "  ha_concepts.category = '/eventattribute/observation/postmortem' "
-    SQLstring += "  AND ha_concepts.code LIKE 'tbl*Systems' "
+    SQLstring += "  (ha_concepts.category = '/eventattribute/observation/postmortem') "
+    SQLstring += "  AND (ha_concepts.code LIKE 'tbl%Systems') "
     SQLstring += "ORDER BY "
     SQLstring += "  ha_concepts.category, "
     SQLstring += "  ha_concepts.code "
@@ -245,82 +245,124 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
         create_event_attribute_lookup(cnxn, crsr, system_name + "Macro_SyFiID")
         create_event_attribute_lookup(cnxn, crsr, system_name + "Histo_SyHiID")
 
+    concept_types = ["Macro","Histo"]
 
-    #Get all Event Attributes of the original types
+    for concept_type in concept_types:
 
-    '''
-SELECT ha_events.event_id, 
-       ha_concepts_EA.category AS ea_category, 
-       ha_concepts_EA.code     AS ea_code, 
-       ha_concepts_CD.code     AS value_concept_Code 
-FROM   ha_concepts 
-       INNER JOIN (ha_events 
-                   INNER JOIN ((ha_event_attributes 
-                                LEFT JOIN ha_concepts AS ha_concepts_EA 
-                                       ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts_EA.concept_id)
-                               LEFT JOIN ha_concepts AS ha_concepts_CD 
-                                      ON ha_event_attributes.value_concept_id = ha_concepts_CD.concept_id)
-                           ON ha_events.event_id = ha_event_attributes.event_id) 
-               ON ha_concepts.concept_id = ha_events.event_type_concept_id 
-WHERE  ha_concepts_EA.category  LIKE "/eventattribute/observation/postmortem/tbl*systems" 
-         AND ha_concepts_EA.code LIKE "*macro_orfiid" 
-ORDER  BY ha_events.event_id, 
-          ha_concepts_EA.category, 
-          ha_concepts_EA.code; 
-    '''
+        cases_added = 0
+        systems_added = 0
 
-    #Get event_attributes for events
-    SQLstring = "SELECT "
-    SQLstring += "  ha_events.event_id, "
-    SQLstring += "  ha_concepts_EA.category AS ea_category, "
-    SQLstring += "  ha_concepts_EA.code     AS ea_code, "
-    SQLstring += "  ha_concepts_CD.code     AS value_concept_Code "
-    SQLstring += "FROM "
-    SQLstring += "  ha_concepts "
-    SQLstring += "  INNER JOIN (ha_events "
-    SQLstring += "    INNER JOIN ((ha_event_attributes "
-    SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_EA "
-    SQLstring += "        ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts_EA.concept_id) "
-    SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_CD "
-    SQLstring += "        ON ha_event_attributes.value_concept_id = ha_concepts_CD.concept_id) "
-    SQLstring += "    ON ha_events.event_id = ha_event_attributes.event_id) "
-    SQLstring += "  ON ha_concepts.concept_id = ha_events.event_type_concept_id "
-    SQLstring += "WHERE "
-    SQLstring += "  ha_concepts_EA.category  LIKE '/eventattribute/observation/postmortem/tbl*systems' "
-    SQLstring += "  AND ha_concepts_EA.code LIKE '*macro_orfiid' "
-    SQLstring += "ORDER BY "
-    SQLstring += "  ha_events.event_id, "
-    SQLstring += "  ha_concepts_EA.category, "
-    SQLstring += "  ha_concepts_EA.code "
-    SQLstring += ";"
-
-    crsr.execute(SQLstring)
-    EventAttributeRows = crsr.fetchall()
-
-    row = 0
-    print("Processing Events - Macro")
-
-    current_event = 0
-    current_system = ""
-
-    for EventAttributeRow in EventAttributeRows:
-
-        row += 1
-        sys.stdout.write("\r \r {0}".format(str(row)))
-        sys.stdout.flush()
-
-        if EventAttributeRow.code in ("001", "002", "003", "999"):
-            code = "001"
-            text = "Unknown"
-        elif EventAttributeRow.code in ("031", "032", "033", "034"):
-            code = "003"
-            text = "Other"
+        if concept_type == "Macro":
+            code_case_ext = "Macro_CsFiID"
+            code_system_ext = "Macro_SyFiID"
+            code_organ_ext = "Macro_OrFiID"
         else:
-           code = "002"
-           text = "Known"
+            code_case_ext = "Histo_CsHiID"
+            code_system_ext = "Histo_SyHiID"
+            code_organ_ext = "Histo_OrHiID"
 
-        # print(row, EventAttributeRow.code, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
-        Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
+        #Get event_attributes for events
+        SQLstring = "SELECT "
+        SQLstring += "  ha_events.event_id, "
+        SQLstring += "  ha_concepts_EA.category AS ea_category, "
+        SQLstring += "  ha_concepts_EA.code     AS ea_code, "
+        SQLstring += "  ha_concepts_CD.code     AS value_concept_Code "
+        SQLstring += "FROM "
+        SQLstring += "  ha_concepts "
+        SQLstring += "  INNER JOIN (ha_events "
+        SQLstring += "    INNER JOIN ((ha_event_attributes "
+        SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_EA "
+        SQLstring += "        ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts_EA.concept_id) "
+        SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_CD "
+        SQLstring += "        ON ha_event_attributes.value_concept_id = ha_concepts_CD.concept_id) "
+        SQLstring += "    ON ha_events.event_id = ha_event_attributes.event_id) "
+        SQLstring += "  ON ha_concepts.concept_id = ha_events.event_type_concept_id "
+        SQLstring += "WHERE "
+        SQLstring += "  ha_concepts_EA.category  LIKE '/eventattribute/observation/postmortem/tbl%systems' "
+        SQLstring += "  AND ha_concepts_EA.code LIKE '%" + code_organ_ext + "' "
+        SQLstring += "ORDER BY "
+        SQLstring += "  ha_events.event_id, "
+        SQLstring += "  ha_concepts_EA.category, "
+        SQLstring += "  ha_concepts_EA.code "
+        SQLstring += ";"
+
+        crsr.execute(SQLstring)
+        EventAttributeRows = crsr.fetchall()
+
+        row = 0
+        print("Processing Events - " + concept_type)
+
+        current_event_id = 0
+        current_system_name = ""
+        current_case_code = ""
+        current_case_code_priority = 9
+        current_system_code = ""
+        current_system_code_priority = 9
+
+        for EventAttributeRow in EventAttributeRows:
+
+            row += 1
+            sys.stdout.write("\r \r {0}".format(str(row)))
+            sys.stdout.flush()
+
+            system_code = EventAttributeRow.ea_category.rsplit("/",1)[1]
+            system_name = system_code[3:-7]
+
+            if EventAttributeRow.event_id != current_event_id:
+                if current_event_id == 0:
+                    current_event_id = EventAttributeRow.event_id
+                    current_system_name = system_name
+                else:
+                    # write out last event and system
+                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                                                        "Observation/PostMortem", current_system_name + code_system_ext,
+                                                        current_system_name + code_system_ext,
+                                                        "ID", current_system_code)
+                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                                                        "Observation/PostMortem", "Case" + code_case_ext,
+                                                        "Case" + code_case_ext,
+                                                        "ID", current_case_code)
+                    cases_added += 1
+                    systems_added += 1
+                    current_event_id = EventAttributeRow.event_id
+                    current_system_name = system_name
+                    current_case_code = ""
+                    current_case_code_priority = 9
+                    current_system_code = ""
+                    current_system_code_priority = 9
+            elif system_name != current_system_name:
+                # write out last system
+                Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                                                    "Observation/PostMortem", current_system_name + code_system_ext,
+                                                    current_system_name + code_system_ext,
+                                                    "ID", current_system_code)
+                systems_added += 1
+                current_system_name = system_name
+                current_system_code = ""
+                current_system_code_priority = 9
+            if EventAttributeRow.value_concept_Code in ("001"):
+                code = "001"
+                code_priority = 3
+            elif EventAttributeRow.value_concept_Code in ("002"):
+                code = "002"
+                code_priority = 2
+            elif EventAttributeRow.value_concept_Code in ("003", "004"):
+                code = "003"
+                code_priority = 1
+            else:
+                code = "999"
+                code_priority = 4
+
+            if code_priority < current_system_code_priority:
+                current_system_code = code
+                current_system_code_priority = code_priority
+
+            if code_priority < current_case_code_priority:
+                current_case_code = code
+                current_case_code_priority = code_priority
+
+        print()
+        print(cases_added,systems_added)
 
     print("")
     print("Done!")
@@ -667,11 +709,14 @@ def main():
     # only for Post Mortem Events
     # create_attribute_no_of_attributes(rep_cnxn, rep_crsr)
 
+    # create case and system macro and histo summary attributes
+    create_system_attribute_from_organ_attribute(rep_cnxn, rep_crsr)
+
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
     # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
 
-    exclude_event_attributes(rep_cnxn, rep_crsr)
+    # exclude_event_attributes(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
     res_cnxn.close()

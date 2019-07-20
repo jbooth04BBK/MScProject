@@ -454,7 +454,124 @@ def create_rdv_complete(cnxn, crsr):
 
     create_rdv(cnxn, crsr, file_name)
 
-def create_rdv_study_ext(cnxn, crsr, include_null = True):
+def populate_event_attributes(cnxn, crsr, stage, EventAttributes):
+
+    if stage in ("ext","int1","int2","int3"):
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None,
+                                           "CASEID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,
+                                           "COD2_SUMM"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "BodyWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "CrownRumpLength"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "HeadCircumference"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "CrownRumpLength"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "BodyLength"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "FootLength"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "Neglect_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "Nutrition_NutnID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "DysmorphicFeatures_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "Jaundice_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "Oedema_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "Pallor_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "BloodAtMouth_BMID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "SignsOfTrauma_YNID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None,
+                                           "SignsOfTreatment_YNID"))
+
+    elif stage in ("int1", "int2", "int3"):
+
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "HeartWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "CombLungWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "LiverWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "PancreasWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "ThymusWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "SpleenWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "CombAdrenalWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "ThyroidWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "CombKidneyWeight"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "BrainWeight"))
+
+    elif stage in ("int2","int3"):
+
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
+                                           "CaseMacro_CsFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "CardiovascularMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "CentralNervousMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "EndocrineMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "GastrointestinalMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "RespiratoryMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "ReticuloendothelialMacro_SyFiID"))
+        EventAttributes.append(
+            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None,
+                                           "UrogenitalMacro_SyFiID"))
+
+    return EventAttributes
+
+def create_rdv_study(cnxn, crsr, stage, include_null = True):
 
     # Select Patient Attributes
     EventPatientAttributes = []
@@ -466,25 +583,7 @@ def create_rdv_study_ext(cnxn, crsr, include_null = True):
     EventPatientAttributeFilterValues = []
 
     # Select Event Attributes
-    EventAttributes = []
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Neglect_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Nutrition_NutnID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "DysmorphicFeatures_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Jaundice_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Oedema_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Pallor_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BloodAtMouth_BMID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "SignsOfTrauma_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "SignsOfTreatment_YNID"))
-
+    EventAttributes = populate_event_attributes(cnxn, crsr, stage,[])
 
     # Is this necessary if measurements were made we could use them.
     EventAttributeFilters = []
@@ -492,67 +591,9 @@ def create_rdv_study_ext(cnxn, crsr, include_null = True):
     EventAttributeFilterValues = []
     EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", None, "001"))
 
-    if include_null:
-        file_name = "rdv_" + "study_ext_null"
-    else:
-        file_name = "rdv_" + "study_ext"
+    file_name = "rdv_" + "study_" + stage
 
-    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues, include_null)
-
-
-def create_rdv_study_int1(cnxn, crsr, include_null = True):
-
-    # Select Patient Attributes
-    EventPatientAttributes = []
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Age Category
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AG")) # Age in Days
-
-    # Select Patient Attribute Filters
-    EventPatientAttributeFilters = []
-    EventPatientAttributeFilterValues = []
-
-    # Select Event Attributes
-    EventAttributes = []
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblCases", None, "CASEID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None, "COD2_SUMM"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "HeadCircumference"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "CrownRumpLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BodyLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "FootLength"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Neglect_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Nutrition_NutnID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "DysmorphicFeatures_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Jaundice_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Oedema_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "Pallor_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "BloodAtMouth_BMID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "SignsOfTrauma_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblExternalExams", None, "SignsOfTreatment_YNID"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "HeartWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombLungWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "LiverWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "PancreasWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThymusWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "SpleenWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombAdrenalWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "ThyroidWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "CombKidneyWeight"))
-    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblInternalExams", None, "BrainWeight"))
-
-    # Is this necessary if measurements were made we could use them.
-    EventAttributeFilters = []
-    EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,"INC_IN_STUDY"))
-    EventAttributeFilterValues = []
-    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/INC_IN_STUDY", None, "001"))
-
-    if include_null:
-        file_name = "rdv_" + "study_int1_null"
-    else:
-        file_name = "rdv_" + "study_int1"
-
-    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues, include_null)
+    create_rdv(cnxn, crsr, file_name, EventPatientAttributes, EventPatientAttributeFilters, EventPatientAttributeFilterValues, EventAttributes, EventAttributeFilters, EventAttributeFilterValues)
 
 
 def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientAttributeFilters = [], EventPatientAttributeFilterValues = [], EventAttributes = [], EventAttributeFilters = [], EventAttributeFilterValues = [], include_null = True):
@@ -565,7 +606,7 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     '''
 
     if include_null:
-        null_string = "NULL"
+        null_string = "nan"
     else:
         null_string = ""
 
@@ -682,12 +723,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append(null_string) # NULL
+                            out_row.append(null_string)
                         column_pos += 1
             # may be the last attribute missing
             if column_pos <= len(patient_col)-1:
                 for col in range(column_pos,len(patient_col)):
-                    out_row.append(null_string) # NULL
+                    out_row.append(null_string)
 
             # For each event process list of event_attributes
             column_pos = 0
@@ -710,12 +751,12 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
                             output_column = False
 
                         else:
-                            out_row.append(null_string) # NULL
+                            out_row.append(null_string)
                         column_pos += 1
             # may be the last attributes missing
             if column_pos <= len(event_col)-1:
                 for col in range(column_pos,len(event_col)):
-                    out_row.append(null_string) # NULL
+                    out_row.append(null_string)
 
             writer.writerow(out_row)
 
@@ -728,7 +769,7 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     XMLLine =  '<?xml version="1.0" encoding="UTF-8"?>'
     XMLLine += '<DatasetDefinition xmlns="http://aridhia-mgrid.com/ddf/2" TableName="' + file_name + '" Action="create">'
     XMLLine += '<Title>' + file_name + '</Title>'
-    XMLLine += '<Format Delimiter="," TextQualifier="&quot;" Encoding="UTF-8" HeaderCase="leave alone" Header="true" CopyToFile="true" NullQualifier="NULL"/>'
+    XMLLine += '<Format Delimiter="," TextQualifier="&quot;" Encoding="UTF-8" HeaderCase="leave alone" Header="true" CopyToFile="true" NullQualifier="' + null_string + '"/>'
     XMLLine += '<Columns>'
 
     for column in xml_row:
@@ -804,14 +845,13 @@ def main():
 
     # create_rdv_selection(rep_cnxn, rep_crsr)
 
-    create_rdv_measurements(rep_cnxn, rep_crsr,False)
-    create_rdv_measurements(rep_cnxn, rep_crsr,True)
+    # create_rdv_measurements(rep_cnxn, rep_crsr)
 
-    #create_rdv_study_ext(rep_cnxn, rep_crsr,False)
-    #create_rdv_study_ext(rep_cnxn, rep_crsr,True)
+    # create_rdv_study(rep_cnxn, rep_crsr, "ext")
 
-    #create_rdv_study_int1(rep_cnxn, rep_crsr,False)
-    #create_rdv_study_int1(rep_cnxn, rep_crsr,True)
+    # create_rdv_study(rep_cnxn, rep_crsr, "int1")
+
+    create_rdv_study(rep_cnxn, rep_crsr, "int2")
 
     rep_cnxn.close()
 
