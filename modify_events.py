@@ -158,6 +158,40 @@ def create_cod2_Summ_attribute_from_cod2_attribute(cnxn, crsr):
     print("Done!")
 
 
+def create_event_attribute_lookup(cnxn, crsr, code):
+    '''
+    :param cnxn:
+    :param crsr:
+    :return:
+
+    '''
+
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+    value_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/", None, "Concept")
+
+    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem",
+                                                parent_concept_id, code, code,
+                                                value_type_concept_id)
+
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, code, code, value_type_concept_id)
+
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/" + code,
+                                                      parent_concept_id, "001", "Normal", value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/" + code,
+                                                      parent_concept_id, "002", "Abnormal but NOT contributed to death",
+                                                      value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/" + code,
+                                                      parent_concept_id, "003", "Abnormal and cause of death",
+                                                      value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/" + code,
+                                                      parent_concept_id, "999", "N/A", value_type_concept_id)
+
+
 def create_system_attribute_from_organ_attribute(cnxn, crsr):
     '''
     :param cnxn:
@@ -188,39 +222,15 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
 
     #Add Attributes and values
     #Case level
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
-    value_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/", None, "Concept")
-
-    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem",
-                                                       parent_concept_id, "CaseMacro_CsFiID", "CaseMacro_CsFiID",
-                                                       value_type_concept_id)
-
-    concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem",
-                                                       parent_concept_id, "CaseHisto_CsHiID", "CaseHisto_CsHiID",
-                                                       value_type_concept_id)
-
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "CaseMacro_CsFiID", "CaseMacro_CsFiID", value_type_concept_id)
-
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseMacro_CsFiID", parent_concept_id, "001", "Normal", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseMacro_CsFiID", parent_concept_id, "002", "Abnormal but NOT contributed to death", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseMacro_CsFiID", parent_concept_id, "003", "Abnormal and cause of death", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseMacro_CsFiID", parent_concept_id, "999", "N/A", value_type_concept_id)
-
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "CaseHisto_CsHiID", "CaseHisto_CsHiID", value_type_concept_id)
-
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseHisto_CsHiID", parent_concept_id, "001", "Normal", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseHisto_CsHiID", parent_concept_id, "002", "Abnormal but NOT contributed to death", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseHisto_CsHiID", parent_concept_id, "003", "Abnormal and cause of death", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/CaseHisto_CsHiID", parent_concept_id, "999", "N/A", value_type_concept_id)
+    create_event_attribute_lookup(cnxn, crsr, "CaseMacro_CsFiID")
+    create_event_attribute_lookup(cnxn, crsr, "CaseHisto_CsHiID")
 
     SQLstring = "SELECT "
     SQLstring += "  ha_concepts.code "
     SQLstring += "FROM "
     SQLstring += "  ha_concepts "
     SQLstring += "WHERE "
-    SQLstring += "  ha_concepts.category = '/eventattribute/observation/postmortem'  "
+    SQLstring += "  ha_concepts.category = '/eventattribute/observation/postmortem' "
     SQLstring += "  AND ha_concepts.code LIKE 'tbl*Systems' "
     SQLstring += "ORDER BY "
     SQLstring += "  ha_concepts.category, "
@@ -230,50 +240,68 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
     crsr.execute(SQLstring)
     systems = crsr.fetchall()
 
-    row = 0
-    print("Processing Systems")
-
     for system in systems:
         system_name = system.code[3:-7]
+        create_event_attribute_lookup(cnxn, crsr, system_name + "Macro_SyFiID")
+        create_event_attribute_lookup(cnxn, crsr, system_name + "Histo_SyHiID")
 
-        system_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "tblFinalDiagnoses", "tblFinalDiagnoses", value_type_concept_id)
 
-    event_attribute_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+    #Get all Event Attributes of the original types
 
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+    '''
+SELECT ha_events.event_id, 
+       ha_concepts_EA.category AS ea_category, 
+       ha_concepts_EA.code     AS ea_code, 
+       ha_concepts_CD.code     AS value_concept_Code 
+FROM   ha_concepts 
+       INNER JOIN (ha_events 
+                   INNER JOIN ((ha_event_attributes 
+                                LEFT JOIN ha_concepts AS ha_concepts_EA 
+                                       ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts_EA.concept_id)
+                               LEFT JOIN ha_concepts AS ha_concepts_CD 
+                                      ON ha_event_attributes.value_concept_id = ha_concepts_CD.concept_id)
+                           ON ha_events.event_id = ha_event_attributes.event_id) 
+               ON ha_concepts.concept_id = ha_events.event_type_concept_id 
+WHERE  ha_concepts_EA.category  LIKE "/eventattribute/observation/postmortem/tbl*systems" 
+         AND ha_concepts_EA.code LIKE "*macro_orfiid" 
+ORDER  BY ha_events.event_id, 
+          ha_concepts_EA.category, 
+          ha_concepts_EA.code; 
+    '''
 
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "001", "Unknown", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "002", "known", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "003", "Other", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "994", "N/A", value_type_concept_id)
-
-    #Get all Event Attributes of the original type
-
-    #Get event_attributes for current event
+    #Get event_attributes for events
     SQLstring = "SELECT "
-    SQLstring += "  event_attribute_id, " # TODO we seem to have a duplicate CaseID
-    SQLstring += "  event_id, "
-    SQLstring += "  event_attribute_type_concept_id, "
-    SQLstring += "  value_text, "
-    SQLstring += "  value_numeric, "
-    SQLstring += "  value_datetime, "
-    SQLstring += "  value_concept_id, "
-    SQLstring += "  value_type_concept_id, "
-    SQLstring += "  code, "
-    SQLstring += "  label "
-    SQLstring += "FROM ha_event_attributes "
-    SQLstring += "  LEFT OUTER JOIN ha_concepts "
-    SQLstring += "    ON ha_concepts.concept_id = ha_event_attributes.value_concept_id "
+    SQLstring += "  ha_events.event_id, "
+    SQLstring += "  ha_concepts_EA.category AS ea_category, "
+    SQLstring += "  ha_concepts_EA.code     AS ea_code, "
+    SQLstring += "  ha_concepts_CD.code     AS value_concept_Code "
+    SQLstring += "FROM "
+    SQLstring += "  ha_concepts "
+    SQLstring += "  INNER JOIN (ha_events "
+    SQLstring += "    INNER JOIN ((ha_event_attributes "
+    SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_EA "
+    SQLstring += "        ON ha_event_attributes.event_attribute_type_concept_id = ha_concepts_EA.concept_id) "
+    SQLstring += "      LEFT JOIN ha_concepts AS ha_concepts_CD "
+    SQLstring += "        ON ha_event_attributes.value_concept_id = ha_concepts_CD.concept_id) "
+    SQLstring += "    ON ha_events.event_id = ha_event_attributes.event_id) "
+    SQLstring += "  ON ha_concepts.concept_id = ha_events.event_type_concept_id "
     SQLstring += "WHERE "
-    SQLstring += "  (ha_concepts.category = '/EventAttribute/Observation/PostMortem/LookUp/COD2_COD2ID') "
+    SQLstring += "  ha_concepts_EA.category  LIKE '/eventattribute/observation/postmortem/tbl*systems' "
+    SQLstring += "  AND ha_concepts_EA.code LIKE '*macro_orfiid' "
+    SQLstring += "ORDER BY "
+    SQLstring += "  ha_events.event_id, "
+    SQLstring += "  ha_concepts_EA.category, "
+    SQLstring += "  ha_concepts_EA.code "
     SQLstring += ";"
 
     crsr.execute(SQLstring)
     EventAttributeRows = crsr.fetchall()
 
     row = 0
-    print("Processing Events - COD2_SUMM Attribute From COD2 Attribute")
+    print("Processing Events - Macro")
+
+    current_event = 0
+    current_system = ""
 
     for EventAttributeRow in EventAttributeRows:
 
