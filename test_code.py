@@ -23,3 +23,9 @@ if type(test_type) == type(''):
 test_type = None
 if type(test_type) == type(None):
     print(type(test_type))
+
+system_code = "tblCardioSystems"
+system_name = system_code[3:-7]
+
+print(system_name)
+

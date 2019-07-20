@@ -106,7 +106,6 @@ def modify_csv(orig_file_name):
                     else:
                         out_row.append(row.loc[col_name])
 
-
         writer.writerow(out_row)
 
     file.close()
