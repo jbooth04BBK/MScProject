@@ -125,9 +125,9 @@ def main():
 
     # modify_csv('rdv_study_int1_x')
 
-    # modify_csv('rdv_study_int2')
+    modify_csv('rdv_study_int2')
 
-    # modify_csv('rdv_study_int3')
+    modify_csv('rdv_study_int3')
 
     modify_csv('rdv_study_int2_s')
 

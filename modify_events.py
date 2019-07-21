@@ -361,6 +361,15 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
                 current_case_code = code
                 current_case_code_priority = code_priority
 
+        # Add final Event Attributes
+        Create_HAS_Tables.AddEventAttribute(cnxn, crsr, current_event_id,
+                                            "Observation/PostMortem", current_system_name + code_system_ext,
+                                            current_system_name + code_system_ext,
+                                            "ID", current_system_code)
+        Create_HAS_Tables.AddEventAttribute(cnxn, crsr, current_event_id,
+                                            "Observation/PostMortem", "Case" + code_case_ext,
+                                            "Case" + code_case_ext,
+                                            "ID", current_case_code)
         print()
         print(cases_added,systems_added)
 
