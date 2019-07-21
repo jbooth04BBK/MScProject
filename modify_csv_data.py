@@ -119,15 +119,19 @@ def modify_csv(orig_file_name):
 
 def main():
 
-    modify_csv('rdv_study_ext')
+    # modify_csv('rdv_study_ext')
 
-    modify_csv('rdv_study_int1')
+    # modify_csv('rdv_study_int1')
 
-    modify_csv('rdv_study_int1_x')
+    # modify_csv('rdv_study_int1_x')
 
-    modify_csv('rdv_study_int2')
+    # modify_csv('rdv_study_int2')
 
-    modify_csv('rdv_study_int3')
+    # modify_csv('rdv_study_int3')
+
+    modify_csv('rdv_study_int2_s')
+
+    modify_csv('rdv_study_int3_s')
 
 if __name__ == "__main__":
     main()

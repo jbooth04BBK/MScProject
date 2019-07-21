@@ -314,11 +314,11 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
                     current_system_name = system_name
                 else:
                     # write out last event and system
-                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, current_event_id,
                                                         "Observation/PostMortem", current_system_name + code_system_ext,
                                                         current_system_name + code_system_ext,
                                                         "ID", current_system_code)
-                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                    Create_HAS_Tables.AddEventAttribute(cnxn, crsr, current_event_id,
                                                         "Observation/PostMortem", "Case" + code_case_ext,
                                                         "Case" + code_case_ext,
                                                         "ID", current_case_code)
@@ -332,7 +332,7 @@ def create_system_attribute_from_organ_attribute(cnxn, crsr):
                     current_system_code_priority = 9
             elif system_name != current_system_name:
                 # write out last system
-                Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                Create_HAS_Tables.AddEventAttribute(cnxn, crsr, current_event_id,
                                                     "Observation/PostMortem", current_system_name + code_system_ext,
                                                     current_system_name + code_system_ext,
                                                     "ID", current_system_code)

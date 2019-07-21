@@ -35,7 +35,7 @@ str(clean_RDVData)
 #  -train: If set to `TRUE`, the function creates the train set, otherwise the test set. Default value sets to `TRUE`. Boolean value.
 #   You need to add a Boolean parameter because R does not allow to return two data frames simultaneously.
 
-data_test <- create_train_test(clean_RDVData, 0.8, train = TRUE)
+data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
 data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
 
 #########################################################
@@ -43,7 +43,7 @@ data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
 
 # Train model with preprocessing & repeated cv
 model_gbm <- caret::train(cod2_summ ~ .,
-                          data = data_test,
+                          data = data_train,
                           method = "gbm",
                           trControl = trainControl(method = "repeatedcv",
                                                    number = 5,
@@ -96,8 +96,8 @@ params = list(
   booster="gbtree",
   eta=0.3,
   max_depth=9, 
-  gamma=3,
-  subsample=0.75,
+  gamma=0,
+  subsample=1,
   colsample_bytree=1,
   objective="multi:softprob",
   eval_metric="mlogloss",
@@ -108,7 +108,7 @@ params = list(
 xgb.fit=xgb.train(
   params=params,
   data=xgb.train,
-  nrounds=10000,
+  nrounds=100,
   nthreads=1,
   early_stopping_rounds=10,
   watchlist=list(val1=xgb.train,val2=xgb.test),
@@ -141,3 +141,6 @@ print(paste('Accuracy for test', accuracy_Test))
 
 importance <- xgb.importance(model = xgb.fit)
 importance
+
+xgb.plot.importance (importance_matrix = importance[1:30]) 
+

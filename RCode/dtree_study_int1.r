@@ -18,7 +18,10 @@ source("study_functions.R")
 set.seed(62)
 
 # Read CSV into R
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1.csv", header=TRUE, sep=",")
+# RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1.csv", header=TRUE, sep=",")
+# RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1_adj.csv", header=TRUE, sep=",")
+# RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
+RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
 
 str(RDVData)
 
@@ -119,7 +122,7 @@ for (ms in r_minsplit) {
     
   }
   if (row == 1) {
-   plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.7), pch=row-1, xlab= "maxdepth", ylab= "accuracy")
+   plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.8), pch=row-1, xlab= "maxdepth", ylab= "accuracy")
   } else {
    lines(accuracy_matrix[row,], type="o", pch=row-1)
   }
