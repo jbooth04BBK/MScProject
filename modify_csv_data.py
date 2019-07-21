@@ -13,7 +13,7 @@ def modify_csv(orig_file_name):
     # Read the data
     data = pd.read_csv(destination_folder + orig_file_name + file_ext)
 
-    ignore_cols = ['event_id','event_start_date','age_category','age_in_days','case_id','cod2_summ','include_in_study']
+    ignore_cols = ['event_id','event_start_date','age_category','age_in_days','gestation_at_delivery_in_days','case_id','cod2_summ','include_in_study']
     class_col = 'cod2_summ'
 
     amend_cols = []
@@ -95,16 +95,21 @@ def modify_csv(orig_file_name):
             else:
                 if amend_col[1] == 'numeric':
                     if pd.isna(row.loc[col_name]):
-                        out_row.append(row.loc[col_name])
+                        out_row.append(row.loc[col_name]) # outputs nan
+                        # out_row.append(-99)
                     else:
                         mean = amend_col[2]
                         std = amend_col[3]
                         out_row.append("{:.4f}".format(((row.loc[col_name] - mean)/std)))
                 else:
                     if col_name == class_col:
-                        out_row.append(int(row.loc[col_name][1:]) - 1) # want classfication to be 0 or 1
+                        out_row.append(int(row.loc[col_name][1:]) - 1) # want classification to be 0 or 1
                     else:
-                        out_row.append(row.loc[col_name])
+                        if col_name in ['age_in_days','gestation_at_delivery_in_days'] and pd.isna(row.loc[col_name]):
+                            out_row.append(row.loc[col_name]) # outputs nan
+                            # out_row.append(-99)
+                        else:
+                            out_row.append(row.loc[col_name])
 
         writer.writerow(out_row)
 
@@ -118,6 +123,11 @@ def main():
 
     modify_csv('rdv_study_int1')
 
+    modify_csv('rdv_study_int1_x')
+
+    modify_csv('rdv_study_int2')
+
+    modify_csv('rdv_study_int3')
 
 if __name__ == "__main__":
     main()

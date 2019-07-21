@@ -18,16 +18,14 @@ set.seed(62)
 # Read CSV into R
 RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_ext.csv", header=TRUE, sep=",")
 
-head(RDVData)
-
 str(RDVData)
 
+sum(is.na(RDVData$gestation_at_delivery_in_days))
 sum(is.na(RDVData$body_weight))
 sum(is.na(RDVData$head_circumference))
 sum(is.na(RDVData$crown_rump_length))
 sum(is.na(RDVData$body_length))
 sum(is.na(RDVData$foot_length))
-sum(is.na(RDVData$signs_of_treatment_ynid))
 
 #Remove unwanted columns
 clean_RDVData <- RDVData %>%
