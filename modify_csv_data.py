@@ -129,9 +129,9 @@ def main():
 
     modify_csv('rdv_study_int3')
 
-    modify_csv('rdv_study_int2_s')
+    # modify_csv('rdv_study_int2_s')
 
-    modify_csv('rdv_study_int3_s')
+    # modify_csv('rdv_study_int3_s')
 
 if __name__ == "__main__":
     main()

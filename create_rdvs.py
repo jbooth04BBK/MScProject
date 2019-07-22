@@ -551,9 +551,6 @@ def populate_event_attributes(cnxn, crsr, stage, EventAttributes):
 
         EventAttributes.append(
             Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
-                                           "CaseMacro_CsFiID"))
-        EventAttributes.append(
-            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
                                            "CardiovascularMacro_SyFiID"))
         EventAttributes.append(
             Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
@@ -576,9 +573,6 @@ def populate_event_attributes(cnxn, crsr, stage, EventAttributes):
 
     if stage in ("int3_x","int3"):
 
-        EventAttributes.append(
-            Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
-                                           "CaseHisto_CsHiID"))
         EventAttributes.append(
             Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
                                            "CardiovascularHisto_SyHiID"))
@@ -903,9 +897,9 @@ def main():
     # create_rdv_study(rep_cnxn, rep_crsr, "int1")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
     create_rdv_study(rep_cnxn, rep_crsr, "int2")
-    create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
     create_rdv_study(rep_cnxn, rep_crsr, "int3")
-    create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
 
     rep_cnxn.close()
 
