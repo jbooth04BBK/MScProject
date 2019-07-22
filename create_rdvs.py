@@ -600,7 +600,7 @@ def populate_event_attributes(cnxn, crsr, stage, EventAttributes):
         EventAttributes.append(
             Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
                                            "CaseMacro_CsFiID"))
-    if stage in ("int3_s"):
+    if stage == "int3_s":
 
         EventAttributes.append(
             Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
@@ -896,7 +896,7 @@ def main():
     # create_rdv_study(rep_cnxn, rep_crsr, "ext")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
-    create_rdv_study(rep_cnxn, rep_crsr, "int2")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int2")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
     create_rdv_study(rep_cnxn, rep_crsr, "int3")
     # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
