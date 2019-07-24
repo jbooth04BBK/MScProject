@@ -10,21 +10,51 @@ library(ggplot2)
 library(rpart)
 library(rpart.plot)
 library(caret)
+library(lubridate)
 
 # Clear work space
 rm(list = ls())
 
 source("study_functions.R")
 
-set.seed(62)
+now = Sys.time()
+run_seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+set.seed(run_seed)
 
-column_names = c('Stage','max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+######################################
+# Create Feature Importance data frame
+######################################
+
+#Read in largest CSVs and get unique list of column names
+RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
+cn = colnames(RDVData)
+RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
+cn1 = colnames(RDVData)
+
+cn <- append(cn, cn1, after = length(cn))
+cn <- unique(cn)
+
+# Remove unwanted columns
+cn <- cn[!cn %in% c("event_id", "event_start_date", "age_category", "case_id", "include_in_study", "foot_length", "crown_rump_length")]
+
+col_values  = replicate(length(cn),0.0)
+
+# create an empty data frame
+column_names <- c("feature","ext","int1","int2","int3","int3_s")
+fimp_results <- data.frame(cn, col_values, col_values, col_values, col_values, col_values)
+colnames(fimp_results) <- column_names
+
+######################################
+# Create matrix to store results
+######################################
+
+column_names = c('Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
 
 results_matrix = matrix(nrow=5,ncol=length(column_names))
 colnames(results_matrix) <- column_names
 
 for(n_stage in 1:5) {
-  
+
   rm_col = 1
   
   if (n_stage == 1) { 
@@ -46,18 +76,23 @@ for(n_stage in 1:5) {
   
   results_matrix[n_stage,rm_col] = stage
   rm_col = rm_col + 1
+  results_matrix[n_stage,rm_col] = run_seed
+  rm_col = rm_col + 1
   
-  #Remove unwanted columns
+  #Remove unwanted columns - gestation_at_delivery_in_days
   if (stage == "ext") { 
     clean_RDVData <- RDVData %>%
-      select(-c(event_id, event_start_date, age_category, case_id, include_in_study)) %>%
+      select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study)) %>%
       na.omit()
   } else {
     clean_RDVData <- RDVData %>%
-      select(-c(event_id, event_start_date, age_category, case_id, include_in_study, foot_length, crown_rump_length)) %>%
+      select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study, foot_length, crown_rump_length)) %>%
       na.omit()
   }  
   
+  results_matrix[n_stage,rm_col] = nrow(clean_RDVData)
+  rm_col = rm_col + 1
+
   clean_RDVData$cod2_summ <- as.factor(clean_RDVData$cod2_summ)
   
   data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
@@ -133,13 +168,22 @@ for(n_stage in 1:5) {
   
   tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
   
-  tune_fit.importance <- varImp(tune_fit)
-  tune_fit.importance
-  ##-------------------------------------------
+  #############################
+  ## Store and graph importance
+  #############################
   
-  imp <- as.data.frame(tune_fit.importance)
+  imp <- as.data.frame(varImp(tune_fit))
   # Remove 0 importance variables
   imp <- subset(imp, Overall>0)
+
+  total_imp = sum(imp)
+  
+  for (imp_row in 1:nrow(imp)){
+    # print(paste(imp_row,rownames(imp)[imp_row],(imp[imp_row,1] / total_imp) * 100))
+    res_row = which(fimp_results$feature == rownames(imp)[imp_row])
+    fimp_results[res_row, n_stage + 1] <- (imp[imp_row,1] / total_imp) * 100
+  }
+  
   imp$varnames <- rownames(imp) # row names to column
   rownames(imp) <- NULL  
   imp$var_categ <- rep(1, nrow(imp)) # random var category
@@ -169,8 +213,10 @@ for(n_stage in 1:5) {
       rm_col = rm_col + 1
     }
   }
+  
 }
 
 now <- Sys.time()
 write.csv(results_matrix, file = paste0("dt_results_matrix_",format(now, "%Y%m%d_%H%M%S_"),".csv"),row.names=FALSE, na="")
+write.csv(fimp_results, file = paste0("dt_feature_importance_",format(now, "%Y%m%d_%H%M%S_"),".csv"),row.names=FALSE, na="")
 
