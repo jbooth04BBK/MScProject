@@ -2,12 +2,43 @@ import pandas as pd
 import sys
 import os
 import csv
+from sklearn.linear_model import LinearRegression
 
 import Create_HAS_Tables
+import create_rdvs
 
-def modify_csv(orig_file_name):
+def get_lrmodel_results(destination_folder, measures):
 
-    destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
+    lr_results = dict()
+
+    orig_file_name = 'rdv_study_int1'
+    file_ext = ".csv"
+
+    # Read the data
+    data = pd.read_csv(destination_folder + orig_file_name + file_ext)
+
+    for measure in measures:
+
+        # clean_data = data.dropna(how='any')
+        clean_data = pd.concat([data['age_in_days'], data[measure]], axis=1, keys=['age_in_days', measure])
+        clean_data = clean_data.dropna()
+
+        X = clean_data['age_in_days'].values.reshape(-1, 1)
+        y = clean_data[measure].values.reshape(-1, 1)
+
+        regressor = LinearRegression()
+        regressor.fit(X, y)  # training the algorithm
+
+        # To retrieve the intercept:
+        # print(measure, len(clean_data), regressor.intercept_, regressor.coef_)
+
+        lr_results[measure] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
+
+    return lr_results
+
+
+def modify_csv(destination_folder, orig_file_name, lr_results, measures):
+
     file_ext = ".csv"
 
     # Read the data
@@ -16,12 +47,35 @@ def modify_csv(orig_file_name):
     ignore_cols = ['event_id','event_start_date','age_category','age_in_days','gestation_at_delivery_in_days','case_id','cod2_summ','include_in_study']
     class_col = 'cod2_summ'
 
+    print("")
+    print("Adjusting columns for age_in_days")
+    row_counter = 0
+
+    # Adjust measures columns - normaise for age
+    for index, row in data.iterrows():
+
+        row_counter += 1
+        sys.stdout.write("\r \r {0}".format(str(row_counter)))
+        sys.stdout.flush()
+
+        for cname in data.columns:
+            if cname in measures:
+                if not pd.isna(row.loc[cname]):
+                    intercept = lr_results[cname][1]
+                    coefficient = lr_results[cname][2]
+                    actual = row.loc[cname]
+                    predicted = intercept + (row.loc["age_in_days"] * coefficient)
+                    value = (abs(predicted - actual) / actual)
+                    data.at[index, cname] =  value
+
     amend_cols = []
 
     for cname in data.columns:
         if cname in ignore_cols:
             amend_cols.append([cname,'ignore'])
         elif data[cname].dtype in ['int64', 'float64']:
+            # Divide all values by age_in_days
+            #   NB if age_in_days not available replace with nan
             amend_cols.append([cname,'numeric', data[cname].mean(), data[cname].std(), data[cname].min(), data[cname].max()])
         elif data[cname].dtype in ['object']:
             if data[cname].nunique() <= 10:
@@ -48,7 +102,18 @@ def modify_csv(orig_file_name):
     xml_row = []
 
     for amend_col in amend_cols:
-        if amend_col[1] == 'categorical':
+        if amend_col[1] == 'ignore':
+            col_name = amend_col[0]
+            if amend_col[0] in ('event_id','age_in_days','gestation_at_delivery_in_days','case_id'):
+                out_row.append(col_name)
+                xml_row.append((col_name, 3))
+            elif amend_col[0] == "event_start_date":
+                out_row.append(col_name)
+                xml_row.append((col_name, 6))
+            else:
+                out_row.append(col_name)
+                xml_row.append((col_name, 8))
+        elif amend_col[1] == 'categorical':
             for new_col in amend_col[2]:
                 if isinstance(new_col,float):
                     col_name = amend_col[0] + '_nan'
@@ -62,7 +127,7 @@ def modify_csv(orig_file_name):
             if amend_col[1] == 'numeric':
                 xml_row.append((col_name,4))
             else:
-                xml_row.append((col_name,6))
+                xml_row.append((col_name,8))
 
     writer.writerow(out_row)
 
@@ -107,7 +172,8 @@ def modify_csv(orig_file_name):
                     else:
                         if col_name in ['age_in_days','gestation_at_delivery_in_days'] and pd.isna(row.loc[col_name]):
                             out_row.append(row.loc[col_name]) # outputs nan
-                            # out_row.append(-99)
+                        elif col_name in ['age_in_days', 'gestation_at_delivery_in_days']:
+                                out_row.append("{:.0f}".format(row.loc[col_name]))  # outputs nan
                         else:
                             out_row.append(row.loc[col_name])
 
@@ -117,21 +183,94 @@ def modify_csv(orig_file_name):
     print("")
     print("file closed")
 
+    root_file_name = file_name
+
+    file_name = root_file_name + "_columns"
+
+    print("")
+    print("Outputting to file: %s" % (destination_folder + file_name + file_ext))
+
+    # If file left over from last run - rename it, so start fresh.
+    if os.path.isfile(destination_folder + file_name + file_ext):
+        new_fname = file_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
+        os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
+
+    file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
+    writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
+
+    out_row = ["column_name","process","mean","st_dev","min","max"]
+    writer.writerow(out_row)
+
+    for amend_col in amend_cols:
+
+        cname = amend_col[0]
+
+        if amend_col[1] == 'numeric':
+            out_row = [cname, amend_col[1], data[cname].mean(), data[cname].std(), data[cname].min(), data[cname].max()]
+        else:
+            out_row = [cname, amend_col[1], "nan", "nan", "nan", "nan"]
+
+        writer.writerow(out_row)
+
+    file.close()
+    print("")
+    print("file closed")
+
+    file_name = root_file_name + "_lrparams"
+
+    print("")
+    print("Outputting to file: %s" % (destination_folder + file_name + file_ext))
+
+    # If file left over from last run - rename it, so start fresh.
+    if os.path.isfile(destination_folder + file_name + file_ext):
+        new_fname = file_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
+        os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
+
+    file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
+    writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
+
+    out_row = ["column_name","observations","intercept","coeficient"]
+    writer.writerow(out_row)
+
+    # Output linear regression parameters
+    for key in lr_results:
+        out_row = [key, lr_results[key][0], lr_results[key][1], lr_results[key][2]]
+        writer.writerow(out_row)
+
+    file.close()
+    print("")
+    print("file closed")
+
+    #Create XML file
+    create_rdvs.create_tdf_file(xml_row, destination_folder, root_file_name, "nan")
+
+
 def main():
 
-    # modify_csv('rdv_study_ext')
+    destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
-    # modify_csv('rdv_study_int1')
+    measures_all = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length","heart_weight","comb_lung_weight","liver_weight","pancreas_weight","thymus_weight","spleen_weight","comb_adrenal_weight","thyroid_weight","comb_kidney_weight","brain_weight"]
 
-    # modify_csv('rdv_study_int1_x')
+    lr_results = get_lrmodel_results(destination_folder, measures_all)
 
-    modify_csv('rdv_study_int2')
+    # for key in lr_results:
+    #     print(key, lr_results[key])
 
-    modify_csv('rdv_study_int3')
+    measures_ext = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length"]
 
-    # modify_csv('rdv_study_int2_s')
+    modify_csv(destination_folder, 'rdv_study_ext', lr_results, measures_ext)
 
-    # modify_csv('rdv_study_int3_s')
+    modify_csv(destination_folder, 'rdv_study_int1', lr_results, measures_all)
+
+    # modify_csv(destination_folder, 'rdv_study_int1_x', lr_results, measures_all)
+
+    modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
+
+    modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
+
+    # modify_csv(destination_folder, 'rdv_study_int2_s', lr_results, measures_all)
+
+    modify_csv(destination_folder, 'rdv_study_int3_s', lr_results, measures_all)
 
 if __name__ == "__main__":
     main()

@@ -259,6 +259,71 @@ def getEventAttributeRows(cnxn, crsr, EventAttributes = [], EventAttributeFilter
     crsr.execute(SQLstring)
     return crsr.fetchall()
 
+def create_tdf_file(xml_row, destination_folder, table_name, null_string):
+
+    XMLLine =  '<?xml version="1.0" encoding="UTF-8"?>'
+    XMLLine += '<DatasetDefinition xmlns="http://aridhia-mgrid.com/ddf/2" TableName="' + table_name + '" Action="create">'
+    XMLLine += '<Title>' + table_name + '</Title>'
+    XMLLine += '<Format Delimiter="," TextQualifier="&quot;" Encoding="UTF-8" HeaderCase="leave alone" Header="true" CopyToFile="true" NullQualifier="' + null_string + '"/>'
+    XMLLine += '<Columns>'
+
+    for column in xml_row:
+
+        column_name = column[0]
+        value_type_concept_id = column[1]
+
+        if value_type_concept_id == 1:
+            column_type = "text"
+        elif value_type_concept_id == 3:  # INTEGER
+            column_type = "integer"
+        elif value_type_concept_id == 4:  # FLOAT
+            column_type = "double precision"
+        elif value_type_concept_id == 5:  # DATE
+            column_type = "date"
+        elif value_type_concept_id == 6:  # TIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 7:  # DATETIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 8:  # TEXT
+            column_type = "text"
+        elif value_type_concept_id == 9:  # BOOLEAN
+            column_type = "text"
+        else:
+            column_type = "error type: " + str(column[1])
+
+        if ":FIRST_NAME:MIDDLE_NAMES:SURNAME:BIRTH_DATE:DEATH_DATE:POSTCODE:".find((":" + column_name + ":").upper()) >= 0:
+            column_deid_type = "drop"
+        elif ":HEALTH_IDENTIFIER:ALT_HEALTH_IDENTIFIER:STAFF_CODE:HOSPITAL_NO:".find((":" + column_name + ":").upper()) >= 0:
+            column_deid_type = "pseudonymize"
+        else:
+            column_deid_type = "keep"
+
+        # print(column_name, column_type, column_deid_type)
+
+        XMLLine += '<Column Name="' + column_name + '" Type="' + column_type + '" Deidentify="' + column_deid_type + '"/>'
+
+    XMLLine += '</Columns>'
+    XMLLine += '</DatasetDefinition>'
+
+    #Does file exist - if it does rename with time stamp
+    file_ext = ".xml"
+
+    # If file left over from last run - rename it, so start fresh.
+    if os.path.isfile(destination_folder + table_name + file_ext):
+        new_fname = table_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
+        os.rename(destination_folder + table_name + file_ext, destination_folder + new_fname)
+
+    file = open(destination_folder + table_name + file_ext, 'w', newline='', encoding='utf-8')
+
+    print("")
+    print("Outputting to file: %s" % (destination_folder + table_name + file_ext))
+
+    file.write(XMLLine)
+
+    file.close()
+    print("")
+    print("file closed")
+
 def create_rdv_selection(cnxn, crsr):
 
     # Select Patient Attributes
@@ -686,7 +751,7 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     out_row.append("event_start_date")
     xml_row.append(("event_start_date",7)) # datetime
     out_row.append("sex")
-    xml_row.append(("sex",8)) # datetime
+    xml_row.append(("sex",8)) # text
 
     for EventPatientAttributeSummaryRow in EventPatientAttributeSummaryRows:
         column_name = get_column_heading(EventPatientAttributeSummaryRow.label)
@@ -811,70 +876,7 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     print("file closed")
 
     #Create XML file
-
-    XMLLine =  '<?xml version="1.0" encoding="UTF-8"?>'
-    XMLLine += '<DatasetDefinition xmlns="http://aridhia-mgrid.com/ddf/2" TableName="' + file_name + '" Action="create">'
-    XMLLine += '<Title>' + file_name + '</Title>'
-    XMLLine += '<Format Delimiter="," TextQualifier="&quot;" Encoding="UTF-8" HeaderCase="leave alone" Header="true" CopyToFile="true" NullQualifier="' + null_string + '"/>'
-    XMLLine += '<Columns>'
-
-    for column in xml_row:
-
-        column_name = column[0]
-        value_type_concept_id = column[1]
-
-        if value_type_concept_id == 1:
-            column_type = "text"
-        elif value_type_concept_id == 3:  # INTEGER
-            column_type = "integer"
-        elif value_type_concept_id == 4:  # FLOAT
-            column_type = "double precision"
-        elif value_type_concept_id == 5:  # DATE
-            column_type = "date"
-        elif value_type_concept_id == 6:  # TIME
-            column_type = "timestamp"
-        elif value_type_concept_id == 7:  # DATETIME
-            column_type = "timestamp"
-        elif value_type_concept_id == 8:  # TEXT
-            column_type = "text"
-        elif value_type_concept_id == 9:  # BOOLEAN
-            column_type = "text"
-        else:
-            column_type = "error type: " + str(column[1])
-
-        if ":FIRST_NAME:MIDDLE_NAMES:SURNAME:BIRTH_DATE:DEATH_DATE:POSTCODE:".find((":" + column_name + ":").upper()) >= 0:
-            column_deid_type = "drop"
-        elif ":HEALTH_IDENTIFIER:ALT_HEALTH_IDENTIFIER:STAFF_CODE:HOSPITAL_NO:".find((":" + column_name + ":").upper()) >= 0:
-            column_deid_type = "pseudonymize"
-        else:
-            column_deid_type = "keep"
-
-        # print(column_name, column_type, column_deid_type)
-
-        XMLLine += '<Column Name="' + column_name + '" Type="' + column_type + '" Deidentify="' + column_deid_type + '"/>'
-
-    XMLLine += '</Columns>'
-    XMLLine += '</DatasetDefinition>'
-
-    #Does file exist - if it does rename with time stamp
-    file_ext = ".xml"
-
-    # If file left over from last run - rename it, so start fresh.
-    if os.path.isfile(destination_folder + file_name + file_ext):
-        new_fname = file_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
-        os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
-
-    file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
-
-    print("")
-    print("Outputting to file: %s" % (destination_folder + file_name + file_ext))
-
-    file.write(XMLLine)
-
-    file.close()
-    print("")
-    print("file closed")
-
+    create_tdf_file(xml_row, destination_folder, file_name, null_string)
 
 def main():
 
@@ -891,14 +893,14 @@ def main():
 
     # create_rdv_selection(rep_cnxn, rep_crsr)
 
-    # create_rdv_measurements(rep_cnxn, rep_crsr)
+    create_rdv_measurements(rep_cnxn, rep_crsr)
 
     # create_rdv_study(rep_cnxn, rep_crsr, "ext")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
-    create_rdv_study(rep_cnxn, rep_crsr, "int3")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int3")
     # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
 
     rep_cnxn.close()
