@@ -216,7 +216,18 @@ for(n_stage in 1:5) {
   
 }
 
-now <- Sys.time()
-write.csv(results_matrix, file = paste0("dt_results_matrix_",format(now, "%Y%m%d_%H%M%S_"),".csv"),row.names=FALSE, na="")
-write.csv(fimp_results, file = paste0("dt_feature_importance_",format(now, "%Y%m%d_%H%M%S_"),".csv"),row.names=FALSE, na="")
+#############################
+## graph combined importance
+#############################
+
+data <- fimp_results
+data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+data.m.ss <- subset(melt(data), value > 0)
+
+p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
+p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+
+#NB Now recorded at top so all files should have the same timestamp
+write.csv(results_matrix, file = paste0("dt_results_matrix_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
+write.csv(fimp_results, file = paste0("dt_feature_importance_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
 
