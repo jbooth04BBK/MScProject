@@ -19,20 +19,31 @@ def get_lrmodel_results(destination_folder, measures):
 
     for measure in measures:
 
-        # clean_data = data.dropna(how='any')
-        clean_data = pd.concat([data['age_in_days'], data[measure]], axis=1, keys=['age_in_days', measure])
-        clean_data = clean_data.dropna()
+        for sex in ['M','F','U']:
 
-        X = clean_data['age_in_days'].values.reshape(-1, 1)
-        y = clean_data[measure].values.reshape(-1, 1)
+            for age in ['NN', 'IN']:
 
-        regressor = LinearRegression()
-        regressor.fit(X, y)  # training the algorithm
+                # clean_data = data.dropna(how='any')
+                clean_data = pd.concat([data['age_in_days'], data['sex'], data[measure]], axis=1, keys=['age_in_days', 'sex', measure])
+                clean_data = clean_data[clean_data.sex == sex]
+                if age == 'NN':
+                    clean_data = clean_data[clean_data.age_in_days <= 100]
+                else:
+                    clean_data = clean_data[clean_data.age_in_days > 100]
 
-        # To retrieve the intercept:
-        # print(measure, len(clean_data), regressor.intercept_, regressor.coef_)
+                clean_data = clean_data.dropna()
 
-        lr_results[measure] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
+                X = clean_data['age_in_days'].values.reshape(-1, 1)
+                y = clean_data[measure].values.reshape(-1, 1)
+
+                if len(X) > 0:
+                    regressor = LinearRegression()
+                    regressor.fit(X, y)  # training the algorithm
+
+                    # To retrieve the intercept:
+                    # print(measure, len(clean_data), regressor.intercept_, regressor.coef_)
+
+                    lr_results[measure + "_" + sex + "_" + age] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
 
     return lr_results
 
@@ -61,12 +72,32 @@ def modify_csv(destination_folder, orig_file_name, lr_results, measures):
         for cname in data.columns:
             if cname in measures:
                 if not pd.isna(row.loc[cname]):
-                    intercept = lr_results[cname][1]
-                    coefficient = lr_results[cname][2]
-                    actual = row.loc[cname]
-                    predicted = intercept + (row.loc["age_in_days"] * coefficient)
-                    value = (abs(predicted - actual) / actual)
-                    data.at[index, cname] =  value
+                    # Add sex to results name
+                    if row.loc["sex"] in ['M','F','U']:
+                        rname = cname + "_" + row.loc["sex"]
+                    elif row.loc["sex"] in ['b', 'B']:
+                        rname = cname + "_M"
+                    elif row.loc["sex"] in ['g','G']:
+                        rname = cname + "_F"
+                    else:
+                        rname = cname + "_U"
+
+                    # Add age to results name
+                    if row.loc["age_in_days"] <= 100:
+                        rname += "_NN"
+                    else:
+                        rname += "_IN"
+
+                    if rname in lr_results:
+                        intercept = lr_results[rname][1]
+                        coefficient = lr_results[rname][2]
+                        actual = row.loc[cname]
+                        predicted = intercept + (row.loc["age_in_days"] * coefficient)
+                        value = (abs(predicted - actual) / predicted)
+                        data.at[index, cname] =  value
+                    else:
+                        data.at[index, cname] =  None
+
 
     amend_cols = []
 
@@ -165,7 +196,9 @@ def modify_csv(destination_folder, orig_file_name, lr_results, measures):
                     else:
                         mean = amend_col[2]
                         std = amend_col[3]
-                        out_row.append("{:.4f}".format(((row.loc[col_name] - mean)/std)))
+                        # Z score, standardisation - not required if age_normalised
+                        # out_row.append("{:.4f}".format(((row.loc[col_name] - mean)/std)))
+                        out_row.append("{:.4f}".format(row.loc[col_name]))
                 else:
                     if col_name == class_col:
                         out_row.append(int(row.loc[col_name][1:]) - 1) # want classification to be 0 or 1

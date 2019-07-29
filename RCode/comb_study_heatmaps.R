@@ -10,6 +10,7 @@
 
 library(ggplot2)
 library(lubridate)
+library(reshape2)
 
 # Clear work space
 rm(list = ls())
@@ -28,8 +29,16 @@ create_save_plot <- function(plot_stage, plot_data) {
   ggsave(file_name)
 }
 
-data_dt <- read.csv(file="dt_feature_importance_20190728_152426_.csv", header=TRUE, sep=",")
-data_xg <- read.csv(file="xgb_feature_importance_20190728_153030_.csv", header=TRUE, sep=",")
+# Read in latest DT CSV file
+df <- file.info(list.files(pattern = "^dt_f(.*)csv$", ignore.case=TRUE))
+latest_filename <- rownames(df)[which.max(df$mtime)]
+data_dt <- read.csv(file=latest_filename, header=TRUE, sep=",")
+
+# Read in latest XGB CSV file
+df <- file.info(list.files(pattern = "^xgb_f(.*)csv$", ignore.case=TRUE))
+latest_filename <- rownames(df)[which.max(df$mtime)]
+data_xg <- read.csv(file=latest_filename, header=TRUE, sep=",")
+
 data <- merge(data_dt, data_xg, by.x = "feature", by.y = "feature", suffixes = c("_dt","_xgb"))
 
 # Order data by highest overall score, turn into a list, then delete zero values

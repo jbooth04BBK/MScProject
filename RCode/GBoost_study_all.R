@@ -10,6 +10,7 @@ library(caret)
 library(xgboost)
 library(lubridate)
 library('DiagrammeR') # NB installed package
+library(reshape2)
 
 # Clear work space
 rm(list = ls())
