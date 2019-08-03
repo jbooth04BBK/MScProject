@@ -22,6 +22,9 @@ now <- Sys.time()
 run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
 set.seed(run.seed)
 
+model.name = "Decision Tree"
+model.abv = "dt"
+
 source.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs"
 results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
 sub.dir <- format(now, "%Y%m%d_%H%M")
@@ -89,7 +92,7 @@ for(n_stage in 1:5) {
   
   results_matrix[n_stage,rm_col] = stage
   rm_col = rm_col + 1
-  results_matrix[n_stage,rm_col] = run_seed
+  results_matrix[n_stage,rm_col] = run.seed
   rm_col = rm_col + 1
   
   #Remove unwanted columns - gestation_at_delivery_in_days
@@ -192,7 +195,6 @@ for(n_stage in 1:5) {
   total_imp = sum(imp)
   
   for (imp_row in 1:nrow(imp)){
-    # print(paste(imp_row,rownames(imp)[imp_row],(imp[imp_row,1] / total_imp) * 100))
     res_row = which(fimp_results$feature == rownames(imp)[imp_row])
     fimp_results[res_row, n_stage + 1] <- (imp[imp_row,1] / total_imp) * 100
   }
@@ -201,18 +203,27 @@ for(n_stage in 1:5) {
   rownames(imp) <- NULL  
   imp$var_categ <- rep(1, nrow(imp)) # random var category
   
-  print(
-    ggplot(imp, aes(x=reorder(varnames, Overall), y=Overall)) + 
-      geom_point() +
-      geom_segment(aes(x=varnames,xend=varnames,y=0,yend=Overall)) +
-      ylab("Overall") +
-      xlab("Variable Name") +
-      coord_flip()
-  )
+  plot.title = paste0("Feature Importance - Model: ",model.name,", Stage: ",stage)
+  
+  p <- ggplot(imp, aes(x=reorder(varnames, Overall), y=Overall))
+  p <- p + geom_point()
+  p <- p + geom_segment(aes(x=varnames,xend=varnames,y=0,yend=Overall))
+  p <- p + ggtitle(plot.title)
+  p <- p + ylab("Relative Importance")
+  p <- p + xlab("Feature")
+  p <- p + coord_flip()
+  
+  print(p)
+  
+  ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_",stage,".png"))
+  
   ##-------------------------------------------
   
   rpart.plot(tune_fit)
-  title(main=paste0("Decision Tree, Stage - ",stage), col.main="red", font.main=4)
+  title(main=paste0("Tree - Model: ",model.name,", Stage: ",stage), col.main="red", font.main=4)
+  
+  dev.copy(png,filename=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_tree_",stage,".png"));
+  dev.off ();
   
   results_matrix[n_stage,rm_col] = accuracy_fit(tune_fit)
   rm_col = rm_col + 1
@@ -239,15 +250,21 @@ data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
 # Remove 0 values and create structure to plot
 data.m.ss <- subset(melt(data), value > 0)
 # Create plot
+plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
 p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
-p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+p <- p + ggtitle(plot.title)
+p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+
+print(p)
+
+ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_hm.png"))
 
 #############################
 ## output results CSV files
 #############################
 
 #NB Now recorded at top so all files should have the same timestamp
-write.csv(results_matrix, file = paste0(file.path(results.dir, sub.dir), "\\dt_results_matrix.csv"),row.names=FALSE, na="")
-write.csv(fimp_results, file = paste0(file.path(results.dir, sub.dir), "\\dt_feature_importance.csv"),row.names=FALSE, na="")
+write.csv(results_matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_results_matrix.csv"),row.names=FALSE, na="")
+write.csv(fimp_results, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
 
 #################################
