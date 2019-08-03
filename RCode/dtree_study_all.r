@@ -18,18 +18,33 @@ rm(list = ls())
 
 source("study_functions.R")
 
-now = Sys.time()
-run_seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
-set.seed(run_seed)
+now <- Sys.time()
+run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+set.seed(run.seed)
 
+source.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs"
+results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
+sub.dir <- format(now, "%Y%m%d_%H%M")
+
+if (!dir.exists(file.path(results.dir, sub.dir))) {
+  dir.create(file.path(results.dir, sub.dir))
+}
+
+# Adjusted data or not
+data.adjusted <- TRUE
+if (data.adjusted) {
+  rdv.type = "_adj"
+} else {
+  rdv.type = ""
+}
 ######################################
 # Create Feature Importance data frame
 ######################################
 
 #Read in largest CSVs and get unique list of column names
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
+RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3", rdv.type, ".csv"), header=TRUE, sep=",")
 cn = colnames(RDVData)
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
+RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3_s", rdv.type, ".csv"), header=TRUE, sep=",")
 cn1 = colnames(RDVData)
 
 cn <- append(cn, cn1, after = length(cn))
@@ -60,20 +75,17 @@ for(n_stage in 1:5) {
   
   if (n_stage == 1) { 
     stage = "ext"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_ext_adj.csv", header=TRUE, sep=",")
   } else if (n_stage == 2) {
     stage = "int1"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1_adj.csv", header=TRUE, sep=",")
   } else if  (n_stage == 3) {
     stage = "int2"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int2_adj.csv", header=TRUE, sep=",")
   } else if  (n_stage == 4) {
     stage = "int3"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
   } else {
     stage = "int3_s"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
   }
+  
+  RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
   
   results_matrix[n_stage,rm_col] = stage
   rm_col = rm_col + 1
@@ -222,14 +234,20 @@ for(n_stage in 1:5) {
 #############################
 
 data <- fimp_results
+# Order results
 data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+# Remove 0 values and create structure to plot
 data.m.ss <- subset(melt(data), value > 0)
-
+# Create plot
 p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
 p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
 
+#############################
+## output results CSV files
+#############################
+
 #NB Now recorded at top so all files should have the same timestamp
-write.csv(results_matrix, file = paste0("dt_results_matrix_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
-write.csv(fimp_results, file = paste0("dt_feature_importance_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
+write.csv(results_matrix, file = paste0(file.path(results.dir, sub.dir), "\\dt_results_matrix.csv"),row.names=FALSE, na="")
+write.csv(fimp_results, file = paste0(file.path(results.dir, sub.dir), "\\dt_feature_importance.csv"),row.names=FALSE, na="")
 
 #################################
