@@ -45,7 +45,7 @@ model.abv = "dt"
 
 fimp.matrix <- setup.fimp.matrix(rdv.type, now, source.dir)
 
-results.matrix <- setup.results.matrix()
+results.matrix <- setup.results.matrix(model.abv)
 
 for(stage.num in 1:5) {
 
@@ -195,13 +195,19 @@ for(stage.num in 1:5) {
   
   ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_",stage,".png"))
   
-  ##-------------------------------------------
+  #############################
+  ## Plot Tree
+  #############################
   
   rpart.plot(tune_fit)
   title(main=paste0("Tree - Model: ",model.name,", Stage: ",stage), col.main="red", font.main=4)
   
   dev.copy(png,filename=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_tree_",stage,".png"));
   dev.off ();
+  
+  #############################
+  ## Store confusion matrix
+  #############################
   
   results.matrix[stage.num,rm.col] = accuracy_fit(tune_fit)
   rm.col = rm.col + 1
