@@ -22,17 +22,6 @@ now <- Sys.time()
 run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
 set.seed(run.seed)
 
-model.name = "Decision Tree"
-model.abv = "dt"
-
-source.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs"
-results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
-sub.dir <- format(now, "%Y%m%d_%H%M")
-
-if (!dir.exists(file.path(results.dir, sub.dir))) {
-  dir.create(file.path(results.dir, sub.dir))
-}
-
 # Adjusted data or not
 data.adjusted <- TRUE
 if (data.adjusted) {
@@ -40,49 +29,35 @@ if (data.adjusted) {
 } else {
   rdv.type = ""
 }
-######################################
-# Create Feature Importance data frame
-######################################
 
-#Read in largest CSVs and get unique list of column names
-RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3", rdv.type, ".csv"), header=TRUE, sep=",")
-cn = colnames(RDVData)
-RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3_s", rdv.type, ".csv"), header=TRUE, sep=",")
-cn1 = colnames(RDVData)
+source.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs"
+results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
+sub.dir <- format(now, "%Y%m%d_%H%M")
 
-cn <- append(cn, cn1, after = length(cn))
-cn <- unique(cn)
+# sub.dir <- "20190803_1209"
 
-# Remove unwanted columns
-cn <- cn[!cn %in% c("event_id", "event_start_date", "age_category", "case_id", "include_in_study", "foot_length", "crown_rump_length")]
+if (!dir.exists(file.path(results.dir, sub.dir))) {
+  dir.create(file.path(results.dir, sub.dir))
+}
 
-col_values  = replicate(length(cn),0.0)
+model.name = "Decision Tree"
+model.abv = "dt"
 
-# create an empty data frame
-column_names <- c("feature","ext","int1","int2","int3","int3_s")
-fimp_results <- data.frame(cn, col_values, col_values, col_values, col_values, col_values)
-colnames(fimp_results) <- column_names
+fimp.matrix <- setup.fimp.matrix(rdv.type, now, source.dir)
 
-######################################
-# Create matrix to store results
-######################################
+results.matrix <- setup.results.matrix()
 
-column_names = c('Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+for(stage.num in 1:5) {
 
-results_matrix = matrix(nrow=5,ncol=length(column_names))
-colnames(results_matrix) <- column_names
-
-for(n_stage in 1:5) {
-
-  rm_col = 1
+  rm.col <- 1
   
-  if (n_stage == 1) { 
+  if (stage.num == 1) { 
     stage = "ext"
-  } else if (n_stage == 2) {
+  } else if (stage.num == 2) {
     stage = "int1"
-  } else if  (n_stage == 3) {
+  } else if  (stage.num == 3) {
     stage = "int2"
-  } else if  (n_stage == 4) {
+  } else if  (stage.num == 4) {
     stage = "int3"
   } else {
     stage = "int3_s"
@@ -90,10 +65,10 @@ for(n_stage in 1:5) {
   
   RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
   
-  results_matrix[n_stage,rm_col] = stage
-  rm_col = rm_col + 1
-  results_matrix[n_stage,rm_col] = run.seed
-  rm_col = rm_col + 1
+  results.matrix[stage.num,rm.col] = stage
+  rm.col = rm.col + 1
+  results.matrix[stage.num,rm.col] = run.seed
+  rm.col = rm.col + 1
   
   #Remove unwanted columns - gestation_at_delivery_in_days
   if (stage == "ext") { 
@@ -106,8 +81,8 @@ for(n_stage in 1:5) {
       na.omit()
   }  
   
-  results_matrix[n_stage,rm_col] = nrow(clean_RDVData)
-  rm_col = rm_col + 1
+  results.matrix[stage.num,rm.col] = nrow(clean_RDVData)
+  rm.col = rm.col + 1
 
   clean_RDVData$cod2_summ <- as.factor(clean_RDVData$cod2_summ)
   
@@ -168,14 +143,17 @@ for(n_stage in 1:5) {
   
   legend(9, 0.65, c("1","2","3","4","5","6","7","8","9","10"), cex = 0.8, pch = 0:9, lty = 1)
   
-  title(main=paste0("rpart control variables, stage - ",stage), col.main="red", font.main=4)
+  title(main=paste0("rpart control variables, stage: ",stage), col.main="red", font.main=4)
   
-  results_matrix[n_stage,rm_col] = max_accuracy
-  rm_col = rm_col + 1
-  results_matrix[n_stage,rm_col] = max_minsplit
-  rm_col = rm_col + 1
-  results_matrix[n_stage,rm_col] = max_maxdepth
-  rm_col = rm_col + 1
+  dev.copy(png,filename=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_tree_variables_",stage,".png"));
+  dev.off ();
+  
+  results.matrix[stage.num,rm.col] = max_accuracy
+  rm.col = rm.col + 1
+  results.matrix[stage.num,rm.col] = max_minsplit
+  rm.col = rm.col + 1
+  results.matrix[stage.num,rm.col] = max_maxdepth
+  rm.col = rm.col + 1
   
   control <- rpart.control(minsplit = max_minsplit,
                            minbucket = round(max_minsplit / 3),
@@ -195,8 +173,8 @@ for(n_stage in 1:5) {
   total_imp = sum(imp)
   
   for (imp_row in 1:nrow(imp)){
-    res_row = which(fimp_results$feature == rownames(imp)[imp_row])
-    fimp_results[res_row, n_stage + 1] <- (imp[imp_row,1] / total_imp) * 100
+    res_row = which(fimp.matrix$feature == rownames(imp)[imp_row])
+    fimp.matrix[res_row, stage.num + 1] <- (imp[imp_row,1] / total_imp) * 100
   }
   
   imp$varnames <- rownames(imp) # row names to column
@@ -225,16 +203,16 @@ for(n_stage in 1:5) {
   dev.copy(png,filename=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_tree_",stage,".png"));
   dev.off ();
   
-  results_matrix[n_stage,rm_col] = accuracy_fit(tune_fit)
-  rm_col = rm_col + 1
+  results.matrix[stage.num,rm.col] = accuracy_fit(tune_fit)
+  rm.col = rm.col + 1
   
   table_mat <- cmatrix_fit(tune_fit)
   
   # Loop over my_matrix
   for(row in 1:nrow(table_mat)) {
     for(col in 1:ncol(table_mat)) {
-      results_matrix[n_stage,rm_col] = table_mat[row, col]
-      rm_col = rm_col + 1
+      results.matrix[stage.num,rm.col] = table_mat[row, col]
+      rm.col = rm.col + 1
     }
   }
   
@@ -244,7 +222,7 @@ for(n_stage in 1:5) {
 ## graph combined importance
 #############################
 
-data <- fimp_results
+data <- fimp.matrix
 # Order results
 data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
 # Remove 0 values and create structure to plot
@@ -264,7 +242,7 @@ ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_import
 #############################
 
 #NB Now recorded at top so all files should have the same timestamp
-write.csv(results_matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_results_matrix.csv"),row.names=FALSE, na="")
-write.csv(fimp_results, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
+write.csv(results.matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_results.matrix.csv"),row.names=FALSE, na="")
+write.csv(fimp.matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
 
 #################################

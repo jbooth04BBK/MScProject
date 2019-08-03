@@ -10,6 +10,8 @@ library(caret)
 library(xgboost)
 library(lubridate)
 library('DiagrammeR') # NB installed package
+library('rsvg') # NB installed package
+library('DiagrammeRsvg') # NB installed package
 library(reshape2)
 
 # Clear work space
@@ -17,67 +19,57 @@ rm(list = ls())
 
 source("study_functions.R")
 
-now = Sys.time()
-run_seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
-set.seed(run_seed)
+now <- Sys.time()
+run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+set.seed(run.seed)
 
-######################################
-# Create Feature Importance data frame
-######################################
+# Adjusted data or not
+data.adjusted <- TRUE
+if (data.adjusted) {
+  rdv.type = "_adj"
+} else {
+  rdv.type = ""
+}
 
-#Read in largest CSVs and get unique list of column names
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
-cn = colnames(RDVData)
-RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
-cn1 = colnames(RDVData)
+source.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs"
+results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
+sub.dir <- format(now, "%Y%m%d_%H%M")
 
-cn <- append(cn, cn1, after = length(cn))
-cn <- unique(cn)
+sub.dir <- "20190803_1304"
 
-# Remove unwanted columns
-cn <- cn[!cn %in% c("event_id", "event_start_date", "age_category", "case_id", "include_in_study", "foot_length", "crown_rump_length")]
+if (!dir.exists(file.path(results.dir, sub.dir))) {
+  dir.create(file.path(results.dir, sub.dir))
+}
 
-col_values  = replicate(length(cn),0.0)
+model.name = "XGBoost Tree"
+model.abv = "xgb"
 
-# create an empty data frame
-column_names <- c("feature","ext","int1","int2","int3","int3_s")
-fimp_results <- data.frame(cn, col_values, col_values, col_values, col_values, col_values)
-colnames(fimp_results) <- column_names
+fimp.matrix <- setup.fimp.matrix(rdv.type, now, source.dir)
 
-######################################
-# Create matrix to store results
-######################################
+results.matrix <- setup.results.matrix()
 
-column_names = c('Stage','run_seed', 'observations','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
-
-results_matrix = matrix(nrow=5,ncol=length(column_names))
-colnames(results_matrix) <- column_names
-
-for(n_stage in 1:5) {
+for(stage.num in 1:5) {
   
-  rm_col = 1
+  rm.com <- 1
   
-  if (n_stage == 1) { 
+  if (stage.num == 1) { 
     stage = "ext"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_ext_adj.csv", header=TRUE, sep=",")
-  } else if (n_stage == 2) {
+  } else if (stage.num == 2) {
     stage = "int1"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int1_adj.csv", header=TRUE, sep=",")
-  } else if  (n_stage == 3) {
+  } else if  (stage.num == 3) {
     stage = "int2"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int2_adj.csv", header=TRUE, sep=",")
-  } else if  (n_stage == 4) {
+  } else if  (stage.num == 4) {
     stage = "int3"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_adj.csv", header=TRUE, sep=",")
   } else {
     stage = "int3_s"
-    RDVData <- read.csv(file="I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\rdv_study_int3_s_adj.csv", header=TRUE, sep=",")
   }
   
-  results_matrix[n_stage,rm_col] = stage
-  rm_col = rm_col + 1
-  results_matrix[n_stage,rm_col] = run_seed
-  rm_col = rm_col + 1
+  RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
+  
+  results.matrix[stage.num,rm.com] = stage
+  rm.com = rm.com + 1
+  results.matrix[stage.num,rm.com] = run.seed
+  rm.com = rm.com + 1
   
   #Remove unwanted columns - gestation_at_delivery_in_days
   if (stage == "ext") { 
@@ -90,8 +82,8 @@ for(n_stage in 1:5) {
       na.omit()
   }  
   
-  results_matrix[n_stage,rm_col] = nrow(clean_RDVData)
-  rm_col = rm_col + 1
+  results.matrix[stage.num,rm.com] = nrow(clean_RDVData)
+  rm.com = rm.com + 1
   
   clean_RDVData$cod2_summ <- as.factor(clean_RDVData$cod2_summ)
   
@@ -157,8 +149,8 @@ for(n_stage in 1:5) {
   # Calculate the final accuracy
   result = sum(xgb.pred$prediction==xgb.pred$label)/nrow(xgb.pred)
 
-  results_matrix[n_stage,rm_col] = result
-  rm_col = rm_col + 1
+  results.matrix[stage.num,rm.com] = result
+  rm.com = rm.com + 1
   
   # Create confusion matrix
   table_mat <- table(xgb.pred$label, xgb.pred$prediction)
@@ -166,8 +158,8 @@ for(n_stage in 1:5) {
   # Loop over my_matrix
   for(row in 1:nrow(table_mat)) {
     for(col in 1:ncol(table_mat)) {
-      results_matrix[n_stage,rm_col] = table_mat[row, col]
-      rm_col = rm_col + 1
+      results.matrix[stage.num,rm.com] = table_mat[row, col]
+      rm.com = rm.com + 1
     }
   }
   
@@ -178,29 +170,60 @@ for(n_stage in 1:5) {
   
   for (imp_row in 1:nrow(imp)){
     # print(paste(imp_row,imp[imp_row,1],(imp[imp_row,2] / total_imp) * 100))
-    res_row = which(fimp_results$feature == imp[imp_row,1])
-    fimp_results[res_row, n_stage + 1] <- (imp[imp_row,2] / total_imp) * 100
+    res_row = which(fimp.matrix$feature == imp[imp_row,1])
+    fimp.matrix[res_row, stage.num + 1] <- (imp[imp_row,2] / total_imp) * 100
   }
   
-  print(xgb.plot.importance (importance_matrix = importance[1:30]) )
+  plot.title = paste0("Feature Importance - Model: ",model.name,", Stage: ",stage)
   
-  print(xgb.plot.tree(model = xgb.fit, trees = 0, show_node_id = TRUE))
- 
+  p <- ggplot(imp, aes(x=reorder(Feature, Gain), y=Gain))
+  p <- p + geom_point()
+  p <- p + geom_segment(aes(x=Feature,xend=Feature,y=0,yend=Gain))
+  p <- p + ggtitle(plot.title)
+  p <- p + ylab("Relative Importance")
+  p <- p + xlab("Feature")
+  p <- p + coord_flip()
+  
+  print(p)
+  
+  ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_",stage,".png"))
+
+  # Single tree plot
+  
+  p <- xgb.plot.tree(model = xgb.fit, trees = 0, show_node_id = TRUE)
+  
+  print(p)
+
+  gr <- xgb.plot.tree(model=xgb.fit, trees=0, show_node_id = TRUE, render=FALSE) 
+  export_graph(gr, paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_tree_",stage,".png"), width=1500, height=1900)
+  
 }
 
 #############################
 ## graph combined importance
 #############################
 
-data <- fimp_results
+data <- fimp.matrix
+# Order results
 data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+# Remove 0 values and create structure to plot
 data.m.ss <- subset(melt(data), value > 0)
-
+# Create plot
+plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
 p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
-p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+p <- p + ggtitle(plot.title)
+p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+
+print(p)
+
+ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_hm.png"))
+
+#############################
+## output results CSV files
+#############################
 
 #NB Now recorded at top so all files should have the same timestamp
-write.csv(results_matrix, file = paste0("xgb_results_matrix_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
-write.csv(fimp_results, file = paste0("xgb_feature_importance_",format(now, "%Y%m%d_%H%M%S"),".csv"),row.names=FALSE, na="")
+write.csv(results.matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_results.matrix.csv"),row.names=FALSE, na="")
+write.csv(fimp.matrix, file = paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
 
 #################################

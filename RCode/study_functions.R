@@ -42,3 +42,46 @@ cmatrix_fit <- function(fit) {
   table_mat
 }
 
+setup.fimp.matrix <- function(rdv.type, now, source.dir) {
+  
+  ######################################
+  # Create Feature Importance data frame
+  ######################################
+  
+  #Read in largest CSVs and get unique list of column names
+  RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3", rdv.type, ".csv"), header=TRUE, sep=",")
+  cn = colnames(RDVData)
+  RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3_s", rdv.type, ".csv"), header=TRUE, sep=",")
+  cn1 = colnames(RDVData)
+  
+  cn <- append(cn, cn1, after = length(cn))
+  cn <- unique(cn)
+  
+  # Remove unwanted columns
+  cn <- cn[!cn %in% c("event_id", "event_start_date", "age_category", "case_id", "include_in_study", "foot_length", "crown_rump_length")]
+  
+  col_values  = replicate(length(cn),0.0)
+  
+  # create an empty data frame
+  column_names <- c("feature","ext","int1","int2","int3","int3_s")
+  fimp.matrix <- data.frame(cn, col_values, col_values, col_values, col_values, col_values)
+  colnames(fimp.matrix) <- column_names
+  
+  return(fimp.matrix)
+  
+}
+
+setup.results.matrix <- function() {
+  
+  ######################################
+  # Create matrix to store results
+  ######################################
+  
+  column_names = c('Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+  
+  results.matrix = matrix(nrow=5,ncol=length(column_names))
+  colnames(results.matrix) <- column_names
+  
+  return(results.matrix)
+  
+}
