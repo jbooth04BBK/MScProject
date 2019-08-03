@@ -18,26 +18,29 @@ rm(list = ls())
 now = Sys.time()
 
 create_save_plot <- function(plot_stage, plot_data) {
-  plot_title = paste0("Combined Feature Importance Heatmap: Stage = ",plot_stage)
+  
+  plot_title = paste0("Combined Feature Importance Heatmap - Stage: ",plot_stage)
   p <- ggplot(plot_data, aes(x=variable, y=feature)) 
   p <- p + ggtitle(plot_title)
   p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + theme(axis.text=element_text(size=6))
   
   print(p)
   
-  file_name <- paste0("comb_study_hm_",plot_stage,"_",format(now, "%Y%m%d_%H%M%S"),".png")
-  ggsave(file_name)
+  ggsave(paste0(file.path(results.dir, sub.dir), "\\", "combined_feature_importance_", plot_stage, "_hm.png"))
+  
 }
 
-# Read in latest DT CSV file
-df <- file.info(list.files(pattern = "^dt_f(.*)csv$", ignore.case=TRUE))
-latest_filename <- rownames(df)[which.max(df$mtime)]
-data_dt <- read.csv(file=latest_filename, header=TRUE, sep=",")
+results.dir <- "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\Results"
+sub.dir <- format(now, "%Y%m%d_%H%M")
 
-# Read in latest XGB CSV file
-df <- file.info(list.files(pattern = "^xgb_f(.*)csv$", ignore.case=TRUE))
-latest_filename <- rownames(df)[which.max(df$mtime)]
-data_xg <- read.csv(file=latest_filename, header=TRUE, sep=",")
+sub.dir <- "20190803_1304"
+
+model.abv = "dt"
+data_dt <- read.csv(file=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"), header=TRUE, sep=",")
+
+model.abv = "xgb"
+data_xg <- read.csv(file=paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_matrix.csv"), header=TRUE, sep=",")
 
 data <- merge(data_dt, data_xg, by.x = "feature", by.y = "feature", suffixes = c("_dt","_xgb"))
 
