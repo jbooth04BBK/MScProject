@@ -2,9 +2,11 @@
 #
 # https://medium.com/analytics-vidhya/a-guide-to-machine-learning-in-r-for-beginners-decision-trees-c24dfd490abb
 # https://www.guru99.com/r-decision-trees.html
+# https://www.gormanalysis.com/blog/decision-trees-in-r-using-rpart/
+# https://infocenter.informationbuilders.com/wf80/index.jsp?topic=%2Fpubdocs%2FRStat16%2Fsource%2Ftopic47.htm
 #
 
-RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
+RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir) {
   
   set.seed(run.seed)
   
@@ -32,8 +34,8 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
     }
     
     now <- Sys.time()
-
-    results.matrix[stage.num,rm.col] = format(now, "%Y%m%d_%H%M")
+    
+    results.matrix[stage.num,rm.col] = format(now, "%Y-%m-%d %H:%M:%S")
     rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = rdv.type
     rm.col = rm.col + 1
@@ -77,15 +79,16 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
     #   -minbucket:  Set the minimum number of observations in the final note i.e. the leaf
     #   -maxdepth: Set the maximum depth of any node of the final tree. The root node is treated a depth 0
     
-    r_minsplit = seq(1,200,by=20)
-    r_maxdepth = seq(1,10,by=1)
+    # r_minsplit = seq(1,200,by = 20)
+    r_minsplit = seq(9,36,by = 3)
+    r_maxdepth = seq(1,20,by = 2)
     row = 0
     
     max_accuracy = 0
     max_minsplit = 0
     max_maxdepth = 0
     
-    accuracy_matrix = matrix(nrow=10,ncol=10)
+    accuracy_matrix = matrix(nrow = length(r_minsplit),ncol = length(r_maxdepth))
     
     for (ms in r_minsplit) {
       row = row + 1
@@ -95,7 +98,7 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
         control <- rpart.control(minsplit = ms,
                                  minbucket = round(ms / 3),
                                  maxdepth = md,
-                                 cp = 0)
+                                 cp = 0.01)
         tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
     
         accuracy_matrix[row,col] = accuracy_fit(tune_fit, data_test)
@@ -108,7 +111,7 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
         
       }
       if (row == 1) {
-       plot(accuracy_matrix[row,], type="o", ylim=c(0.5,0.9), pch=row-1, xlab= "maxdepth", ylab= "accuracy")
+       plot(accuracy_matrix[row,], type="o", ylim=c(0.5,1.0), pch=row-1, xlab= "maxdepth", ylab= "accuracy")
       } else {
        lines(accuracy_matrix[row,], type="o", pch=row-1)
       }
@@ -142,7 +145,7 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
     
     imp <- as.data.frame(varImp(tune_fit))
     # Remove 0 importance variables
-    imp <- subset(imp, Overall>0)
+    imp <- subset(imp, Overall > importance.min)
   
     total_imp = sum(imp)
     
@@ -206,7 +209,7 @@ RunDTModel <- function(run.seed, rdv.type, source.dir, results.sub.dir) {
   # Order results
   data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
   # Remove 0 values and create structure to plot
-  data.m.ss <- subset(melt(data), value > 0)
+  data.m.ss <- subset(melt(data), value > importance.min)
   # Create plot
   plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
   p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 

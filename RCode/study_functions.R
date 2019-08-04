@@ -10,13 +10,17 @@
 #   You need to add a Boolean parameter because R does not allow to return two data frames simultaneously.
 
 create_train_test <- function(data, size = 0.8, train = TRUE) {
+  
   n_row = nrow(data)
-  total_row = size * n_row
-  train_sample <- 1: total_row
+  # total_row = size * n_row
+  # train_sample <- 1: total_row
+  
+  train.sample = sample(n_row,floor(size * n_row))
+
   if (train == TRUE) {
-    return (data[train_sample, ])
+    return (data[train.sample, ])
   } else {
-    return (data[-train_sample, ])
+    return (data[-train.sample, ])
   }
 }
 

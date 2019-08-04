@@ -13,10 +13,12 @@ rm(list = ls())
 source("study_functions.R")
 source("dtree_study.R")
 
-now <- Sys.time()
-run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-# Adjusted data or not
+study.prefix <- "run_04_"
+
+# Adjusted data or not for this study
 data.adjusted <- TRUE
 if (data.adjusted) {
   rdv.type = "_adj"
@@ -24,13 +26,24 @@ if (data.adjusted) {
   rdv.type = ""
 }
 
-source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
-results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-sub.dir <- format(now, "%Y%m%d_%H%M")
-results.sub.dir <- file.path(results.dir, sub.dir)
+importance.min <- 1.0
 
-if (!dir.exists(results.sub.dir)) {
-  dir.create(results.sub.dir)
+# Each run will have it's own sub-folder and random seed
+for(run.num in 1:1) {
+  
+  now <- Sys.time()
+  sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
+  results.sub.dir <- file.path(results.dir, sub.dir)
+  
+  if (!dir.exists(results.sub.dir)) {
+    dir.create(results.sub.dir)
+  }
+  
+  now <- Sys.time()
+  run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+  
+  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+
 }
 
-RunDTModel(run.seed, rdv.type, source.dir, results.sub.dir)
+# combine results for this study
