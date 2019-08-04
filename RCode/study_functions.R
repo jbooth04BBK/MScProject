@@ -29,20 +29,20 @@ create_train_test <- function(data, size = 0.8, train = TRUE) {
 #   - 'prob': to compute the probability of each class			
 #   - 'vector': Predict the mean response at the node level	
 
-accuracy_fit <- function(fit, type.str) {
+accuracy_fit <- function(fit, data_test, type.str = "class") {
   predict_unseen <- predict(fit, data_test, type = type.str)
   table_mat <- table(data_test$cod2_summ, predict_unseen)
   accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
   accuracy_Test
 }
 
-cmatrix_fit <- function(fit, type.str = "class") {
+cmatrix_fit <- function(fit, data_test, type.str = "class") {
   predict_unseen <- predict(fit, data_test, type = type.str)
   table_mat <- table(data_test$cod2_summ, predict_unseen)
   table_mat
 }
 
-setup.fimp.matrix <- function(rdv.type, now, source.dir) {
+setup.fimp.matrix <- function(rdv.type, source.dir) {
   
   ######################################
   # Create Feature Importance data frame
@@ -78,11 +78,11 @@ setup.results.matrix <- function(model.abv) {
   ######################################
   
   if (model.abv == "dt") {
-    column_names = c('Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else if (model.abv == "rf") {
-    column_names = c('Stage','run_seed', 'observations','best_def_mtry','bmtd_accuracy','best_mtry','bmt_accuracy','best_maxnodes','bmn_accuracy','best_ntree','bnt_accuracy','max_accuracy','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations','best_def_mtry','bmtd_accuracy','best_mtry','bmt_accuracy','best_maxnodes','bmn_accuracy','best_ntree','bnt_accuracy','max_accuracy','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else {
-    column_names = c('Stage','run_seed', 'observations','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   }
   
   results.matrix = matrix(nrow=5,ncol=length(column_names))

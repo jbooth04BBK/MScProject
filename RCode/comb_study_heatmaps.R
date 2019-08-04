@@ -23,6 +23,7 @@ create_save_plot <- function(plot_stage, plot_data) {
   p <- ggplot(plot_data, aes(x=variable, y=feature)) 
   p <- p + ggtitle(plot_title)
   p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_text(aes(label = round(value, 1)))
   # p <- p + theme(axis.text=element_text(size=6))
   
   print(p)
