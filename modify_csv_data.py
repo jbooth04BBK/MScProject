@@ -18,10 +18,25 @@ def get_lrmodel_results(destination_folder, measures):
     # Read the data
     data = pd.read_csv(destination_folder + orig_file_name + file_ext)
 
-    plot_cols = 2
-    plot_rows = int(len(measures)/plot_cols)
-    if plot_rows%2 != 0:
-        plot_rows += 1
+    plot_maxcols = 4
+    plot_maxrows = int(len(measures)/plot_maxcols)
+    if plot_maxrows%2 != 0:
+        plot_maxrows += 1
+
+    fig, axs = plt.subplots(plot_maxrows, plot_maxcols)
+
+    # axs[0, 0].plot(x, y)
+    # axs[0, 0].set_title('Axis [0, 0]')
+    # axs[0, 1].plot(x, y, 'tab:orange')
+    # axs[0, 1].set_title('Axis [0, 1]')
+    # axs[1, 0].plot(x, -y, 'tab:green')
+    # axs[1, 0].set_title('Axis [1, 0]')
+    # axs[1, 1].plot(x, -y, 'tab:red')
+    # axs[1, 1].set_title('Axis [1, 1]')
+
+    plot_index = 1
+    plot_row = 0
+    plot_col = 0
 
     for measure in measures:
 
@@ -64,19 +79,26 @@ def get_lrmodel_results(destination_folder, measures):
                     y_pred = regressor.predict(X)
                     # Only want one set for legend
                     if age == 'NN':
-                        plt.scatter(X, y, s = 2, color = point_colour, label = sex)
-                        plt.plot(X, y_pred, color = line_colour, linewidth = 2, label = sex)
+                        axs[plot_row, plot_col].scatter(X, y, s = 2, color = point_colour, label = sex)
+                        axs[plot_row, plot_col].plot(X, y_pred, color = line_colour, linewidth = 2, label = sex)
                     else:
-                        plt.scatter(X, y, s = 2, color = point_colour)
-                        plt.plot(X, y_pred, color=line_colour, linewidth=2)
+                        axs[plot_row, plot_col].scatter(X, y, s = 2, color = point_colour)
+                        axs[plot_row, plot_col].plot(X, y_pred, color=line_colour, linewidth=2)
 
                     lr_results[measure + "_" + sex + "_" + age] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
 
-        plt.subplot(2, 1, 1)
-        plt.title(str(measure))
-        plt.xlabel('Age In Days')
-        plt.ylabel('Measurement')
-        plt.legend(loc='upper left')
+        axs[plot_row, plot_col].set_title(str(measure))
+        # axs[plot_row, plot_col].xlabel('Age In Days')
+        # axs[plot_row, plot_col].ylabel('Measurement')
+        # axs[plot_row, plot_col].legend(loc='upper left')
+
+        plot_index += 1
+
+        if plot_index % plot_maxcols == 0:
+            plot_row += 1
+            plot_col = 0
+        else:
+            plot_col += 1
 
     plt.show()
 
