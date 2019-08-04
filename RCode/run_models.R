@@ -6,6 +6,9 @@ library(rpart.plot)
 library(caret)
 library(lubridate)
 library(reshape2)
+# Random Forest added:
+library(randomForest)
+library(e1071)
 # xgboost added:
 library(xgboost)
 library('DiagrammeR') # NB installed package
@@ -18,12 +21,13 @@ rm(list = ls())
 
 source("study_functions.R")
 source("dtree_study.R")
+source("rforest_study.R")
 source("GBoost_study.R")
 
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-study.prefix <- "run_05_"
+study.prefix <- "run_07_"
 
 # Adjusted data or not for this study
 data.adjusted <- TRUE
@@ -36,7 +40,7 @@ if (data.adjusted) {
 importance.min <- 1.0
 
 # Each run will have it's own sub-folder and random seed
-for(run.num in 1:2) {
+for(run.num in 1:5) {
   
   now <- Sys.time()
   sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
@@ -50,7 +54,8 @@ for(run.num in 1:2) {
   run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   # RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
-  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+  RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+  #RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
   
 }
 

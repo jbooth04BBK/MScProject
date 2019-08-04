@@ -3,6 +3,7 @@ import sys
 import os
 import csv
 from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
 
 import Create_HAS_Tables
 import create_rdvs
@@ -17,9 +18,24 @@ def get_lrmodel_results(destination_folder, measures):
     # Read the data
     data = pd.read_csv(destination_folder + orig_file_name + file_ext)
 
+    plot_cols = 2
+    plot_rows = int(len(measures)/plot_cols)
+    if plot_rows%2 != 0:
+        plot_rows += 1
+
     for measure in measures:
 
         for sex in ['M','F','U']:
+
+            if sex == 'M':
+                point_colour = 'blue'
+                line_colour = 'yellow'
+            elif sex == 'F':
+                point_colour = 'red'
+                line_colour = 'green'
+            else:
+                point_colour = 'black'
+                line_colour = 'white'
 
             for age in ['NN', 'IN']:
 
@@ -43,7 +59,26 @@ def get_lrmodel_results(destination_folder, measures):
                     # To retrieve the intercept:
                     # print(measure, len(clean_data), regressor.intercept_, regressor.coef_)
 
+                    # plot linear regression
+                    # Plot outputs
+                    y_pred = regressor.predict(X)
+                    # Only want one set for legend
+                    if age == 'NN':
+                        plt.scatter(X, y, s = 2, color = point_colour, label = sex)
+                        plt.plot(X, y_pred, color = line_colour, linewidth = 2, label = sex)
+                    else:
+                        plt.scatter(X, y, s = 2, color = point_colour)
+                        plt.plot(X, y_pred, color=line_colour, linewidth=2)
+
                     lr_results[measure + "_" + sex + "_" + age] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
+
+        plt.subplot(2, 1, 1)
+        plt.title(str(measure))
+        plt.xlabel('Age In Days')
+        plt.ylabel('Measurement')
+        plt.legend(loc='upper left')
+
+    plt.show()
 
     return lr_results
 
@@ -84,9 +119,9 @@ def modify_csv(destination_folder, orig_file_name, lr_results, measures):
 
                     # Add age to results name
                     if row.loc["age_in_days"] <= 100:
-                        rname += "_NN"
+                        rname += "_NN" # NeoNates
                     else:
-                        rname += "_IN"
+                        rname += "_IN" # Infants
 
                     if rname in lr_results:
                         intercept = lr_results[rname][1]
@@ -291,19 +326,19 @@ def main():
 
     measures_ext = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length"]
 
-    modify_csv(destination_folder, 'rdv_study_ext', lr_results, measures_ext)
+    # modify_csv(destination_folder, 'rdv_study_ext', lr_results, measures_ext)
 
-    modify_csv(destination_folder, 'rdv_study_int1', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int1', lr_results, measures_all)
 
     # modify_csv(destination_folder, 'rdv_study_int1_x', lr_results, measures_all)
 
-    modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
 
-    modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
 
     # modify_csv(destination_folder, 'rdv_study_int2_s', lr_results, measures_all)
 
-    modify_csv(destination_folder, 'rdv_study_int3_s', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int3_s', lr_results, measures_all)
 
 if __name__ == "__main__":
     main()
