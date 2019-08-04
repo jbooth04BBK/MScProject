@@ -336,7 +336,7 @@ plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
 p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
 p <- p + ggtitle(plot.title)
 p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
-p <- p + theme(axis.text=element_text(size=6))
+p <- p + theme(axis.text=element_text(size=4))
 print(p)
 
 ggsave(paste0(file.path(results.dir, sub.dir), "\\", model.abv, "_feature_importance_hm.png"))
