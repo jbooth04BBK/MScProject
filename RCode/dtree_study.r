@@ -79,6 +79,10 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     #   -minbucket:  Set the minimum number of observations in the final note i.e. the leaf
     #   -maxdepth: Set the maximum depth of any node of the final tree. The root node is treated a depth 0
     
+    run.loops <- FALSE  
+    
+    if (run.loops) {
+
     # r_minsplit = seq(1,200,by = 20)
     r_minsplit = seq(9,36,by = 3)
     r_maxdepth = seq(1,20,by = 2)
@@ -125,6 +129,12 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     dev.copy(png,filename=paste0(results.sub.dir, "/", model.abv, "_tree_variables_",stage,".png"));
     dev.off ();
     
+    } else {
+      max_accuracy <- 0
+      max_minsplit <- 20
+      max_maxdepth <- 0
+    }
+    
     results.matrix[stage.num,rm.col] = max_accuracy
     rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = max_minsplit
@@ -134,8 +144,8 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     control <- rpart.control(minsplit = max_minsplit,
                              minbucket = round(max_minsplit / 3),
-                             maxdepth = max_maxdepth,
-                             cp = 0)
+                             # maxdepth = max_maxdepth,
+                             cp = 0.01)
     
     tune_fit <- rpart(cod2_summ~., data = data_train, method = 'class', control = control)
     
@@ -225,7 +235,6 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   ## output results CSV files
   #############################
   
-  #NB Now recorded at top so all files should have the same timestamp
   write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results.matrix.csv"),row.names=FALSE, na="")
   write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
   
