@@ -46,7 +46,7 @@ cmatrix_fit <- function(fit, data_test, type.str = "class") {
   table_mat
 }
 
-setup.fimp.matrix <- function(rdv.type, source.dir) {
+setup.fimp.matrix <- function(rdv.type, source.dir, run.str) {
   
   ######################################
   # Create Feature Importance data frame
@@ -64,34 +64,54 @@ setup.fimp.matrix <- function(rdv.type, source.dir) {
   # Remove unwanted columns
   cn <- cn[!cn %in% c("event_id", "event_start_date", "age_category", "case_id", "include_in_study", "foot_length", "crown_rump_length")]
   
-  col_values  = replicate(length(cn),0.0)
+  run.col = replicate(length(cn),run.str)
+  col_values= replicate(length(cn),0.0)
   
   # create an empty data frame
-  column_names <- c("feature","ext","int1","int2","int3","int3_s")
-  fimp.matrix <- data.frame(cn, col_values, col_values, col_values, col_values, col_values)
+  column_names <- c("run","feature","ext","int1","int2","int3","int3_s")
+  fimp.matrix <- data.frame(run.col, cn, col_values, col_values, col_values, col_values, col_values)
   colnames(fimp.matrix) <- column_names
   
   return(fimp.matrix)
   
 }
 
-setup.results.matrix <- function(model.abv) {
+setup.results.matrix <- function(model.abv, num.stages) {
   
   ######################################
   # Create matrix to store results
   ######################################
   
   if (model.abv == "dt") {
-    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else if (model.abv == "rf") {
-    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations','best_def_mtry','bmtd_accuracy','best_mtry','bmt_accuracy','best_maxnodes','bmn_accuracy','best_ntree','bnt_accuracy','max_accuracy','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','best_def_mtry','bmtd_accuracy','best_mtry','bmt_accuracy','best_maxnodes','bmn_accuracy','best_ntree','bnt_accuracy','max_accuracy','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else {
-    column_names = c('run_time','rdv_type', 'Stage','run_seed', 'observations','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   }
   
-  results.matrix = matrix(nrow=5,ncol=length(column_names))
+  results.matrix = matrix(nrow = num.stages, ncol = length(column_names))
   colnames(results.matrix) <- column_names
   
   return(results.matrix)
+  
+}
+
+mergeCSV <- function(df.name, model.abv, file.text, results.sub.dir, max.run = 1) {
+  
+  df <- data.frame()
+  
+  for(run.num in 1:max.run){
+    
+    file.suffix <- sprintf("_%02d", run.num)
+    
+    add <- read.csv(file = paste0(results.sub.dir, "/", model.abv, file.text, file.suffix, ".csv"), header=TRUE, sep=",")
+    
+    df <- rbind(df,add)
+  }
+  
+  # colnames(df) <- c(..specify the colnames in here..)
+  
+  assign(df.name, df, envir = .GlobalEnv)
   
 }
