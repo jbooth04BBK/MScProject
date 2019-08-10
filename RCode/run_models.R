@@ -68,15 +68,54 @@ for(run.num in 1:num.runs) {
 # combine results for this study
 # defining the function
 
-# model.abv = "dt"
+comb.results <- data.frame()
+
+model.abv = "dt"
+mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
+
+df.results$model <- replicate(nrow(df.results),model.abv)
+comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+
+model.abv = "rf"
+mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
+
+df.results$model <- replicate(nrow(df.results),model.abv)
+comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+
 model.abv = "xgb"
 mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
 
+df.results$model <- replicate(nrow(df.results),model.abv)
+comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+
+# Change run into a factor
+comb.results$run <- factor(comb.results$run)
+
 # Visualization
-p <- ggplot(df.results, aes(x = run, y = accuracy)) 
-p <- p + geom_line(aes(color = stage))
-p <- p + ylim(0, 1)
-p <- p + ggtitle(paste0("Change of Accuracy by Run: ",model.abv))
+p <- ggplot(comb.results, aes(x = run, y = accuracy, group = stage)) 
+p <- p + geom_line(aes(color = stage), size=2)
+p <- p + ylim(0.4, 1.0)
+p <- p + ggtitle(paste0("Change of Accuracy by Run, by Model "))
+p <- p + facet_grid(model ~ .)
 # p <- p + scale_color_manual(values = c("darkred", "steelblue"))
 
 print(p)
+
+ggsave(paste0(results.sub.dir, "/", "comb_accuracy_run_model",".png"))
+
+# sort comb.results - not needed, just added group = model
+# comb.results <- comb.results[with(comb.results, order(run, model, stage)), ]
+
+# Visualization
+p <- ggplot(comb.results, aes(x = stage, y = accuracy, group = model)) 
+p <- p + geom_line(aes(color = model), size=2)
+p <- p + ylim(0.4, 1.0)
+p <- p + ggtitle(paste0("Change of Accuracy by Model, by Run "))
+p <- p + facet_grid(run ~ .)
+
+print(p)
+
+ggsave(paste0(results.sub.dir, "/", "comb_accuracy_model_run",".png"))
+
+
+
