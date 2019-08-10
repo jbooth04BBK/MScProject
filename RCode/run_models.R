@@ -97,7 +97,7 @@ p <- ggplot(comb.results, aes(x = run, y = accuracy, group = stage))
 p <- p + geom_line(aes(color = stage), size=2)
 p <- p + ylim(0.4, 1.0)
 p <- p + ggtitle(paste0("Change of Accuracy by Run, by Model "))
-p <- p + facet_grid(model ~ .)
+p <- p + facet_grid(rows = vars(model))
 # p <- p + scale_color_manual(values = c("darkred", "steelblue"))
 
 print(p)
@@ -112,7 +112,7 @@ p <- ggplot(comb.results, aes(x = stage, y = accuracy, group = model))
 p <- p + geom_line(aes(color = model), size=2)
 p <- p + ylim(0.4, 1.0)
 p <- p + ggtitle(paste0("Change of Accuracy by Model, by Run "))
-p <- p + facet_grid(run ~ .)
+p <- p + facet_grid(rows = vars(run))
 
 print(p)
 
@@ -141,21 +141,80 @@ mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, 
 
 comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
 
-data.m.ss <- subset(melt(comb.results, id=c("model", "run", "feature")), value > importance.min)
-
-# we want to see how feature importance chnages with random seed.
+# we want to see how feature importance changes with random seed.
+# NB What we have already is by random seed (Run)
 #
 # Variable = Stage, value = relative importance
 #
 # x = run, y = feature, z = value
-# group by stage or model?
+# group by stage (4) or model (3)?
 
-plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
-p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
-p <- p + ggtitle(plot.title)
-p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
-p <- p + geom_text(aes(label = round(value, 1)))
+comb.results$feature <- with(comb.results, reorder(feature, ext + int1 + int2 + int3))
 
-print(p)
+num.stages <- 4
 
-ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm", file.suffix, ".png"))
+for(stage.num in 1:num.stages) {
+  
+  rm.col <- 1
+  
+  if (stage.num == 1) { 
+    stage = "ext"
+  } else if (stage.num == 2) {
+    stage = "int1"
+  } else if  (stage.num == 3) {
+    stage = "int2"
+  } else if  (stage.num == 4) {
+    stage = "int3"
+  } else {
+    stage = "int3_s"
+  }
+  
+  data.m.ss <- melt(comb.results, id=c("model", "run", "feature"))
+  data.m.ss <- subset(data.m.ss, value > importance.min)
+  data.m.ss <- subset(data.m.ss, variable == stage)
+  
+  plot.title = paste0("Compare Feature Importance - stage: ", stage)
+  
+  p <- ggplot(data.m.ss, aes(x=run, y=feature)) 
+  p <- p + ggtitle(plot.title)
+  p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_text(aes(label = round(value, 1)), size = 3)
+  p <- p + facet_grid(cols = vars(model))
+  
+  print(p)
+  
+  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_", stage, ".png"))
+
+}
+
+num.models <- 3
+
+for(model.num in 1:num.models) {
+  
+  rm.col <- 1
+  
+  if (model.num == 1) { 
+    model.abv = "dt"
+  } else if (model.num == 2) {
+    model.abv = "rf"
+  } else {
+    model.abv = "xgb"
+  }
+  
+  data.m.ss <- melt(comb.results, id=c("model", "run", "feature"))
+  data.m.ss <- subset(data.m.ss, value > importance.min)
+  data.m.ss <- subset(data.m.ss, model == model.abv)
+  
+  plot.title = paste0("Compare Feature Importance - Model: ", model.abv)
+  
+  p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
+  p <- p + ggtitle(plot.title)
+  p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_text(aes(label = round(value, 1)), size = 2)
+  p <- p + facet_grid(cols = vars(run))
+  
+  print(p)
+  
+  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_", model.abv, ".png"))
+
+}
