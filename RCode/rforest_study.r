@@ -10,13 +10,15 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   model.name = "Random Forest"
   model.abv = "rf"
+  num.stages <- 4
   
-  fimp.matrix <- setup.fimp.matrix(rdv.type, source.dir)
+  run.str <- substr(file.suffix, nchar(file.suffix) - 1, nchar(file.suffix))
   
-  results.matrix <- setup.results.matrix(model.abv)
+  fimp.matrix <- setup.fimp.matrix(rdv.type, source.dir, run.str)
   
+  results.matrix <- setup.results.matrix(model.abv,num.stages)
   
-  for(stage.num in 1:5) {
+  for(stage.num in 1:num.stages) {
     
     rm.col <- 1
     
@@ -34,13 +36,15 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     now <- Sys.time()
     
+    results.matrix[stage.num,rm.col] = run.str
+    rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = format(now, "%Y-%m-%d %H:%M:%S")
     rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = rdv.type
     rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = stage
-    rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = run.seed
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = stage
     rm.col = rm.col + 1
     
     RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
@@ -63,6 +67,16 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
     data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
+    
+    # Store proportional split of COD2_SUMM for this run    
+    results.matrix[stage.num,rm.col] =prop.table(table(data_train$cod2_summ))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_train$cod2_summ))[2]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_test$cod2_summ))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_test$cod2_summ))[2]
+    rm.col = rm.col + 1
     
     # trainControl(method = "cv", number = n, search ="grid")
     # arguments
@@ -278,7 +292,7 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     print(p)
     
-    ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_",stage,".png"))
+    ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_",stage, file.suffix,".png"))
     
     #############################
     ## Store confusion matrix
@@ -317,14 +331,14 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   print(p)
   
-  ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm.png"))
-  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm", file.suffix, ".png"))
+
   #############################
   ## output results CSV files
   #############################
   
-  write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results.matrix.csv"),row.names=FALSE, na="")
-  write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
+  write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
+  write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
   
   #################################
   

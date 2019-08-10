@@ -6,7 +6,54 @@
 # https://infocenter.informationbuilders.com/wf80/index.jsp?topic=%2Fpubdocs%2FRStat16%2Fsource%2Ftopic47.htm
 #
 
-RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
+#--- Start initialise function
+
+# Load libraries
+library(dplyr)
+library(ggplot2) 
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(lubridate)
+library(reshape2)
+
+# Clear work space
+rm(list = ls())
+
+source("study_functions.R")
+
+source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
+
+study.prefix <- "run_10_"
+
+now <- Sys.time()
+sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
+results.sub.dir <- file.path(results.dir, sub.dir)
+
+if (!dir.exists(results.sub.dir)) {
+  dir.create(results.sub.dir)
+}
+
+# Adjusted data or not for this study
+data.adjusted <- TRUE
+if (data.adjusted) {
+  rdv.type = "_adj"
+} else {
+  rdv.type = ""
+}
+
+importance.min <- 1.0
+
+run.num <- 1
+file.suffix <- sprintf("_%02d", run.num)
+
+now <- Sys.time()
+run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+
+#--- End initialise function
+
+# RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
   
   set.seed(run.seed)
   
@@ -20,7 +67,9 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   results.matrix <- setup.results.matrix(model.abv,num.stages)
   
-  for(stage.num in 1:num.stages) {
+  stage.num <- 1
+  
+  # for(stage.num in 1:num.stages) {
   
     rm.col <- 1
     
@@ -69,6 +118,16 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
     data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
+
+    # Store proportional split of COD2_SUMM for this run    
+    results.matrix[stage.num,rm.col] =prop.table(table(data_train$cod2_summ))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_train$cod2_summ))[2]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_test$cod2_summ))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] =prop.table(table(data_test$cod2_summ))[2]
+    rm.col = rm.col + 1
     
     # rpart(formula, data=, method='')
     # arguments:			
@@ -194,6 +253,9 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     rpart.plot(tune_fit)
     title(main=paste0("Tree - Model: ",model.name,", Stage: ",stage), col.main="red", font.main=4)
     
+    # These results need storing - not quite sure how!
+    # tune_fit
+    
     dev.copy(png,filename=paste0(results.sub.dir, "/", model.abv, "_tree_",stage, file.suffix,".png"));
     dev.off ();
     
@@ -214,7 +276,7 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
       }
     }
     
-  }
+  # } ~ end of For loop
   
   #############################
   ## graph combined importance
@@ -222,7 +284,7 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   data <- fimp.matrix
   # Order results
-  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3))
   # Remove 0 values and create structure to plot
   data.m.ss <- subset(melt(data), value > importance.min)
   # Create plot
@@ -245,4 +307,4 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   #################################
 
-}
+# }

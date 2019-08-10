@@ -10,12 +10,15 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
   
   model.name = "XGBoost Tree"
   model.abv = "xgb"
+  num.stages <- 4
   
-  fimp.matrix <- setup.fimp.matrix(rdv.type, source.dir)
+  run.str <- substr(file.suffix, nchar(file.suffix) - 1, nchar(file.suffix))
   
-  results.matrix <- setup.results.matrix(model.abv)
-
-  for(stage.num in 1:5) {
+  fimp.matrix <- setup.fimp.matrix(rdv.type, source.dir, run.str)
+  
+  results.matrix <- setup.results.matrix(model.abv,num.stages)
+  
+  for(stage.num in 1:num.stages) {
     
     rm.col <- 1
     
@@ -33,13 +36,15 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     
     now <- Sys.time()
     
+    results.matrix[stage.num,rm.col] = run.str
+    rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = format(now, "%Y-%m-%d %H:%M:%S")
     rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = rdv.type
     rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = stage
-    rm.col = rm.col + 1
     results.matrix[stage.num,rm.col] = run.seed
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = stage
     rm.col = rm.col + 1
     
     RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
@@ -79,6 +84,16 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     train.label = label[train.index]
     test.data = as.matrix(xgb.data[-train.index,])
     test.label = label[-train.index]
+    
+    # Store proportional split of COD2_SUMM for this run    
+    results.matrix[stage.num,rm.col] = prop.table(table(train.label))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = prop.table(table(train.label))[2]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = prop.table(table(test.label))[1]
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = prop.table(table(test.label))[2]
+    rm.col = rm.col + 1
     
     # Transform the two data sets into xgb.Matrix
     xgb.train = xgb.DMatrix(data=train.data,label=train.label)
@@ -158,8 +173,8 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     
     print(p)
     
-    ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_",stage,".png"))
-  
+    ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_",stage, file.suffix,".png"))
+    
     # Single tree plot
     
     p <- xgb.plot.tree(model = xgb.fit, trees = 0, show_node_id = TRUE)
@@ -167,8 +182,8 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     print(p)
   
     gr <- xgb.plot.tree(model=xgb.fit, trees=0, show_node_id = TRUE, render=FALSE) 
-    export_graph(gr, paste0(results.sub.dir, "/", model.abv, "_tree_",stage,".png"), width=1500, height=1900)
-    
+    export_graph(gr, paste0(results.sub.dir, "/", model.abv, "_tree_",stage, file.suffix,".png"), width=1500, height=1900)
+
   }
   
   #############################
@@ -190,15 +205,14 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
   
   print(p)
   
-  ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm.png"))
-  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm", file.suffix, ".png"))
+
   #############################
   ## output results CSV files
   #############################
   
-  #NB Now recorded at top so all files should have the same timestamp
-  write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results.matrix.csv"),row.names=FALSE, na="")
-  write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix.csv"),row.names=FALSE, na="")
+  write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
+  write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
   
   #################################
 

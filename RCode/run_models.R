@@ -1,3 +1,4 @@
+
 # Load libraries
 library(dplyr)
 library(ggplot2) 
@@ -27,7 +28,7 @@ source("GBoost_study.R")
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-study.prefix <- "run_09_"
+study.prefix <- "run_10_"
 
 now <- Sys.time()
 sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
@@ -56,24 +57,26 @@ for(run.num in 1:num.runs) {
   now <- Sys.time()
   run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
-  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
+  # RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
   
   # RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
   
-  # RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
   
 }
 
 # combine results for this study
 # defining the function
 
-model.abv = "dt"
+# model.abv = "dt"
+model.abv = "xgb"
 mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
 
 # Visualization
 p <- ggplot(df.results, aes(x = run, y = accuracy)) 
 p <- p + geom_line(aes(color = stage))
 p <- p + ylim(0, 1)
-p <- p + ggtitle("Change of Accuracy by Run")
+p <- p + ggtitle(paste0("Change of Accuracy by Run: ",model.abv))
 # p <- p + scale_color_manual(values = c("darkred", "steelblue"))
+
 print(p)
