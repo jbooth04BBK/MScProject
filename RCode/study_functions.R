@@ -110,8 +110,8 @@ mergeCSV <- function(df.name, model.abv, file.text, results.sub.dir, max.run = 1
     df <- rbind(df,add)
   }
   
-  # colnames(df) <- c(..specify the colnames in here..)
-  
+  df$model <- replicate(nrow(df),model.abv)
+
   assign(df.name, df, envir = .GlobalEnv)
   
 }

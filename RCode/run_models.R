@@ -68,24 +68,25 @@ for(run.num in 1:num.runs) {
 # combine results for this study
 # defining the function
 
+#######################################
+# Compare accuracy by random seed (run)
+#######################################
+
 comb.results <- data.frame()
 
 model.abv = "dt"
 mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
 
-df.results$model <- replicate(nrow(df.results),model.abv)
 comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
 
 model.abv = "rf"
 mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
 
-df.results$model <- replicate(nrow(df.results),model.abv)
 comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
 
 model.abv = "xgb"
 mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
 
-df.results$model <- replicate(nrow(df.results),model.abv)
 comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
 
 # Change run into a factor
@@ -117,5 +118,44 @@ print(p)
 
 ggsave(paste0(results.sub.dir, "/", "comb_accuracy_model_run",".png"))
 
+################################################
+# Compare feature Importance by random seed (run)
+################################################
 
+# dt_feature_importance_matrix_02
 
+comb.results <- data.frame()
+
+model.abv = "dt"
+mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
+
+comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
+
+model.abv = "rf"
+mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
+
+comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
+
+model.abv = "xgb"
+mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
+
+comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
+
+data.m.ss <- subset(melt(comb.results, id=c("model", "run", "feature")), value > importance.min)
+
+# we want to see how feature importance chnages with random seed.
+#
+# Variable = Stage, value = relative importance
+#
+# x = run, y = feature, z = value
+# group by stage or model?
+
+plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
+p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
+p <- p + ggtitle(plot.title)
+p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+p <- p + geom_text(aes(label = round(value, 1)))
+
+print(p)
+
+ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_hm", file.suffix, ".png"))
