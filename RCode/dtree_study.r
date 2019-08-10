@@ -6,54 +6,54 @@
 # https://infocenter.informationbuilders.com/wf80/index.jsp?topic=%2Fpubdocs%2FRStat16%2Fsource%2Ftopic47.htm
 #
 
-#--- Start initialise function
+# #--- Start initialise function
+# 
+# # Load libraries
+# library(dplyr)
+# library(ggplot2) 
+# library(rpart)
+# library(rpart.plot)
+# library(caret)
+# library(lubridate)
+# library(reshape2)
+# 
+# # Clear work space
+# rm(list = ls())
+# 
+# source("study_functions.R")
+# 
+# source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+# results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
+# 
+# study.prefix <- "run_10_"
+# 
+# now <- Sys.time()
+# sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
+# results.sub.dir <- file.path(results.dir, sub.dir)
+# 
+# if (!dir.exists(results.sub.dir)) {
+#   dir.create(results.sub.dir)
+# }
+# 
+# # Adjusted data or not for this study
+# data.adjusted <- TRUE
+# if (data.adjusted) {
+#   rdv.type = "_adj"
+# } else {
+#   rdv.type = ""
+# }
+# 
+# importance.min <- 1.0
+# 
+# run.num <- 1
+# file.suffix <- sprintf("_%02d", run.num)
+# 
+# now <- Sys.time()
+# run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+# 
+# #--- End initialise function
 
-# Load libraries
-library(dplyr)
-library(ggplot2) 
-library(rpart)
-library(rpart.plot)
-library(caret)
-library(lubridate)
-library(reshape2)
-
-# Clear work space
-rm(list = ls())
-
-source("study_functions.R")
-
-source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
-results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-
-study.prefix <- "run_10_"
-
-now <- Sys.time()
-sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
-results.sub.dir <- file.path(results.dir, sub.dir)
-
-if (!dir.exists(results.sub.dir)) {
-  dir.create(results.sub.dir)
-}
-
-# Adjusted data or not for this study
-data.adjusted <- TRUE
-if (data.adjusted) {
-  rdv.type = "_adj"
-} else {
-  rdv.type = ""
-}
-
-importance.min <- 1.0
-
-run.num <- 1
-file.suffix <- sprintf("_%02d", run.num)
-
-now <- Sys.time()
-run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
-
-#--- End initialise function
-
-# RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
+RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
   
   set.seed(run.seed)
   
@@ -67,9 +67,9 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   results.matrix <- setup.results.matrix(model.abv,num.stages)
   
-  stage.num <- 1
+  # stage.num <- 1
   
-  # for(stage.num in 1:num.stages) {
+  for(stage.num in 1:num.stages) {
   
     rm.col <- 1
     
@@ -84,6 +84,8 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     } else {
       stage = "int3_s"
     }
+    
+    print(paste0("Run: ", run.str, " Model: ",model.name," Stage: ",stage))
     
     now <- Sys.time()
     
@@ -143,9 +145,9 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     #   -minbucket:  Set the minimum number of observations in the final note i.e. the leaf
     #   -maxdepth: Set the maximum depth of any node of the final tree. The root node is treated a depth 0
     
-    run.loops <- FALSE  
+    run.tune <- FALSE  
     
-    if (run.loops) {
+    if (run.tune) {
 
       # r_minsplit = seq(1,200,by = 20)
       r_minsplit = seq(9,36,by = 3)
@@ -263,7 +265,11 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     ## Store confusion matrix
     #############################
     
-    results.matrix[stage.num,rm.col] = accuracy_fit(tune_fit, data_test)
+    accuract.fit <- accuracy_fit(tune_fit, data_test)
+    
+    print(accuract.fit)
+    
+    results.matrix[stage.num,rm.col] = accuract.fit
     rm.col = rm.col + 1
     
     table_mat <- cmatrix_fit(tune_fit, data_test)
@@ -276,7 +282,7 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
       }
     }
     
-  # } ~ end of For loop
+  } ## end of For loop
   
   #############################
   ## graph combined importance
@@ -307,4 +313,4 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   #################################
 
-# }
+}

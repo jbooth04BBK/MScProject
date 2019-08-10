@@ -4,7 +4,7 @@
 # https://rpubs.com/dalekube/XGBoost-Iris-Classification-Example-in-R
 #
 
-RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir) {
+RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
   
   set.seed(run.seed)
   
@@ -33,6 +33,8 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     } else {
       stage = "int3_s"
     }
+    
+    print(paste0("Run: ", run.str, " Model: ",model.name," Stage: ",stage))
     
     now <- Sys.time()
     
@@ -102,7 +104,7 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     params = list(
       booster="gbtree",
       eta=0.3,
-      max_depth=9, 
+      max_depth=6,## NB Was 9
       gamma=0,
       subsample=1,
       colsample_bytree=1,
@@ -137,6 +139,8 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     # Calculate the final accuracy
     result = sum(xgb.pred$prediction==xgb.pred$label)/nrow(xgb.pred)
   
+    print(result)
+    
     results.matrix[stage.num,rm.col] = result
     rm.col = rm.col + 1
     
@@ -158,7 +162,7 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     
     for (imp_row in 1:nrow(imp)){
       res_row = which(fimp.matrix$feature == imp[imp_row,1])
-      fimp.matrix[res_row, stage.num + 1] <- (imp[imp_row,2] / total_imp) * 100
+      fimp.matrix[res_row, stage.num + 2] <- (imp[imp_row,2] / total_imp) * 100
     }
     
     plot.title = paste0("Feature Importance - Model: ",model.name,", Stage: ",stage)
@@ -192,7 +196,7 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
   
   data <- fimp.matrix
   # Order results
-  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3))
   # Remove 0 values and create structure to plot
   data.m.ss <- subset(melt(data), value > importance.min)
   # Create plot

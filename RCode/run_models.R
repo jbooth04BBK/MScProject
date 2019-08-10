@@ -57,11 +57,11 @@ for(run.num in 1:num.runs) {
   now <- Sys.time()
   run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
-  # RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
+  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
   
-  # RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+  RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
   
-  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir)
+  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
   
 }
 

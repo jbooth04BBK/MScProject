@@ -4,7 +4,7 @@
 #
 
 
-RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir) {
+RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
   
   set.seed(run.seed)
   
@@ -33,6 +33,8 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     } else {
       stage = "int3_s"
     }
+    
+    print(paste0("Run: ", run.str, " Model: ",model.name," Stage: ",stage))
     
     now <- Sys.time()
     
@@ -98,152 +100,181 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     # - `trControl = trainControl()`: Define the control parameters
     # - `tuneGrid = NULL`: Return a data frame with all the possible combination
     
-    # Run the model
-    rf_default <- train(cod2_summ~.,
-                        data = data_train,
-                        method = "rf",
-                        metric = "Accuracy",
-                        trControl = trControl)
+    run.tune <- FALSE  
     
-    # Print the results
-    
-    # mtry = 2 with accuracy of 0.679
-    # adj mtry = 24 with accuracy of 0.673
-    
-    best.mtry <- rf_default$bestTune$mtry
-    
-    print(best.mtry)
-    print(max(rf_default$results$Accuracy))
-    
-    results.matrix[stage.num,rm.col] = best.mtry
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = max(rf_default$results$Accuracy)
-    rm.col = rm.col + 1
-    
-    min.mtry <- best.mtry - 5
-    max.mtry <- best.mtry + 5
-    
-    # Try and find a better mtry
-    tuneGrid <- expand.grid(.mtry = c(min.mtry : max.mtry))
-    rf_mtry <- train(cod2_summ~.,
-                     data = data_train,
-                     method = "rf",
-                     metric = "Accuracy",
-                     tuneGrid = tuneGrid,
-                     trControl = trControl,
-                     importance = TRUE,
-                     nodesize = 14,
-                     ntree = 300)
-    
-    # Max accuracy was 0.694 with mtry = 8
-    # adj Max accuracy was 0.700 with mtry = 12
-    
-    best.mtry <- rf_mtry$bestTune$mtry
-    
-    print(best.mtry)
-    print(max(rf_mtry$results$Accuracy))
-    
-    results.matrix[stage.num,rm.col] = best.mtry
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = max(rf_mtry$results$Accuracy)
-    rm.col = rm.col + 1
-    
-    # Find best.maxnodes
-    
-    nodes.seq <- seq(4,30,by=2)
-    
-    rf.matrix = matrix(nrow = length(nodes.seq),ncol = 2)
-    rfm.row <- 1
-    
-    accuracy.max = 0
-    best.maxnodes = 0
-    
-    tuneGrid <- expand.grid(.mtry = best.mtry)
-    
-    for (maxnodes in nodes.seq) {
-    
-      rf_maxnode <- train(cod2_summ~.,
+    if (run.tune) {
+      
+      # Run the model using defaults
+      rf_default <- train(cod2_summ~.,
                           data = data_train,
                           method = "rf",
                           metric = "Accuracy",
-                          tuneGrid = tuneGrid,
-                          trControl = trControl,
-                          importance = TRUE,
-                          nodesize = 14,
-                          maxnodes = maxnodes,
-                          ntree = 300)
+                          trControl = trControl)
+      
+      # Print the results
+      
+      # mtry = 2 with accuracy of 0.679
+      # adj mtry = 24 with accuracy of 0.673
+      
+      best.mtry <- rf_default$bestTune$mtry
+      
+      print(best.mtry)
+      print(max(rf_default$results$Accuracy))
+      
+      results.matrix[stage.num,rm.col] = best.mtry
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = max(rf_default$results$Accuracy)
+      rm.col = rm.col + 1
+      
+      min.mtry <- best.mtry - 5
+      max.mtry <- best.mtry + 5
+      
+      # Try and find a better mtry
+      tuneGrid <- expand.grid(.mtry = c(min.mtry : max.mtry))
+      rf_mtry <- train(cod2_summ~.,
+                       data = data_train,
+                       method = "rf",
+                       metric = "Accuracy",
+                       tuneGrid = tuneGrid,
+                       trControl = trControl,
+                       importance = TRUE,
+                       nodesize = 14,
+                       ntree = 300)
+      
+      # Max accuracy was 0.694 with mtry = 8
+      # adj Max accuracy was 0.700 with mtry = 12
+      
+      best.mtry <- rf_mtry$bestTune$mtry
+      
+      print(best.mtry)
+      print(max(rf_mtry$results$Accuracy))
+      
+      results.matrix[stage.num,rm.col] = best.mtry
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = max(rf_mtry$results$Accuracy)
+      rm.col = rm.col + 1
+      
+      # Find best.maxnodes
+      
+      nodes.seq <- seq(4,30,by=2)
+      
+      rf.matrix = matrix(nrow = length(nodes.seq),ncol = 2)
+      rfm.row <- 1
+      
+      accuracy.max = 0
+      best.maxnodes = 0
+      
+      tuneGrid <- expand.grid(.mtry = best.mtry)
+      
+      for (maxnodes in nodes.seq) {
+      
+        rf_maxnode <- train(cod2_summ~.,
+                            data = data_train,
+                            method = "rf",
+                            metric = "Accuracy",
+                            tuneGrid = tuneGrid,
+                            trControl = trControl,
+                            importance = TRUE,
+                            nodesize = 14,
+                            maxnodes = maxnodes,
+                            ntree = 300)
+          
+        rf.matrix[rfm.row,1] <- maxnodes
+        rf.matrix[rfm.row,2] <- max(rf_maxnode$results$Accuracy)
         
-      rf.matrix[rfm.row,1] <- maxnodes
-      rf.matrix[rfm.row,2] <- max(rf_maxnode$results$Accuracy)
-      
-      if (accuracy.max < max(rf_maxnode$results$Accuracy)) {
-        accuracy.max <- max(rf_maxnode$results$Accuracy)
-        best.maxnodes <- maxnodes
-      }
-      
-      rfm.row <- rfm.row + 1
-      
-    }
-    
-    print(best.maxnodes)
-    print(accuracy.max)
-    
-    results.matrix[stage.num,rm.col] = best.maxnodes
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = accuracy.max
-    rm.col = rm.col + 1
-    
-    # Max accuracy was 0.740 with maxnodes = 16
-    # adj Max accuracy was 0.751 with maxnodes = 16
-    # best_maxnodes = 16
-    
-    # Now find best number of trees
-    
-    tree.seq <- c(50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 800, 1000)
-    
-    rf.matrix = matrix(nrow = length(tree.seq),ncol = 2)
-    rfm.row <- 1
-    
-    accuracy.max = 0
-    best.ntree = 0
-    
-    for (ntree in tree.seq) {
-    
-        rf_maxtrees <- train(cod2_summ~.,
-                           data = data_train,
-                           method = "rf",
-                           metric = "Accuracy",
-                           tuneGrid = tuneGrid,
-                           trControl = trControl,
-                           importance = TRUE,
-                           nodesize = 14,
-                           maxnodes = best.maxnodes,
-                           ntree = ntree)
-    
-        rf.matrix[rfm.row,1] <- ntree
-        rf.matrix[rfm.row,2] <- max(rf_maxtrees$results$Accuracy)
-        
-        if (accuracy.max < max(rf_maxtrees$results$Accuracy)) {
-          accuracy.max <- max(rf_maxtrees$results$Accuracy)
-          best.ntree <- ntree
+        if (accuracy.max < max(rf_maxnode$results$Accuracy)) {
+          accuracy.max <- max(rf_maxnode$results$Accuracy)
+          best.maxnodes <- maxnodes
         }
         
         rfm.row <- rfm.row + 1
         
+      }
+      
+      print(best.maxnodes)
+      print(accuracy.max)
+      
+      results.matrix[stage.num,rm.col] = best.maxnodes
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = accuracy.max
+      rm.col = rm.col + 1
+      
+      # Max accuracy was 0.740 with maxnodes = 16
+      # adj Max accuracy was 0.751 with maxnodes = 16
+      # best_maxnodes = 16
+      
+      # Now find best number of trees
+      
+      tree.seq <- c(50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 800, 1000)
+      
+      rf.matrix = matrix(nrow = length(tree.seq),ncol = 2)
+      rfm.row <- 1
+      
+      accuracy.max = 0
+      best.ntree = 0
+      
+      for (ntree in tree.seq) {
+      
+          rf_maxtrees <- train(cod2_summ~.,
+                             data = data_train,
+                             method = "rf",
+                             metric = "Accuracy",
+                             tuneGrid = tuneGrid,
+                             trControl = trControl,
+                             importance = TRUE,
+                             nodesize = 14,
+                             maxnodes = best.maxnodes,
+                             ntree = ntree)
+      
+          rf.matrix[rfm.row,1] <- ntree
+          rf.matrix[rfm.row,2] <- max(rf_maxtrees$results$Accuracy)
+          
+          if (accuracy.max < max(rf_maxtrees$results$Accuracy)) {
+            accuracy.max <- max(rf_maxtrees$results$Accuracy)
+            best.ntree <- ntree
+          }
+          
+          rfm.row <- rfm.row + 1
+          
+      }
+      
+      print(best.ntree)
+      print(accuracy.max)
+      
+      results.matrix[stage.num,rm.col] = best.ntree
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = accuracy.max
+      rm.col = rm.col + 1
+      
+      # Max accuracy of 0.7457 with 30 trees
+      # adj 1 Max accuracy of 0.7457 with 45 trees
+      # adj 2 Max accuracy of 0.7514 with 300 trees
+      # best_maxtrees = 300
+      
+    } else {
+      best.mtry <- 45
+      
+      results.matrix[stage.num,rm.col] = best.mtry
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = 0
+      rm.col = rm.col + 1
+      
+      best.maxnodes <- 23
+      
+      results.matrix[stage.num,rm.col] = best.maxnodes
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = 0
+      rm.col = rm.col + 1
+      
+      best.ntree <- 550
+
+      results.matrix[stage.num,rm.col] = best.ntree
+      rm.col = rm.col + 1
+      results.matrix[stage.num,rm.col] = 0
+      rm.col = rm.col + 1
+      
+      tuneGrid <- expand.grid(.mtry = best.mtry)
     }
-    
-    print(best.ntree)
-    print(accuracy.max)
-    
-    results.matrix[stage.num,rm.col] = best.ntree
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = accuracy.max
-    rm.col = rm.col + 1
-    
-    # Max accuracy of 0.7457 with 30 trees
-    # adj 1 Max accuracy of 0.7457 with 45 trees
-    # adj 2 Max accuracy of 0.7514 with 300 trees
-    # best_maxtrees = 300
     
     # The best model
     fit_rf <- train(cod2_summ~.,
@@ -273,7 +304,7 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     for (imp_row in 1:nrow(imp)){
       res_row = which(fimp.matrix$feature == rownames(imp)[imp_row])
-      fimp.matrix[res_row, stage.num + 1] <- (imp[imp_row,1] / total_imp) * 100
+      fimp.matrix[res_row, stage.num + 2] <- (imp[imp_row,1] / total_imp) * 100
       imp[imp_row,3]  <- (imp[imp_row,1] / total_imp) * 100 
     }
     
@@ -318,7 +349,7 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   data <- fimp.matrix
   # Order results
-  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3 + int3_s))
+  data$feature <- with(data, reorder(feature, ext + int1 + int2 + int3))
   # Remove 0 values and create structure to plot
   data.m.ss <- subset(melt(data), value > importance.min)
   # Create plot
