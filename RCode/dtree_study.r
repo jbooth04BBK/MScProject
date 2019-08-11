@@ -53,37 +53,26 @@
 # 
 # #--- End initialise function
 
-RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix) {
+RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
   
   set.seed(run.seed)
   
   model.name = "Decision Tree"
   model.abv = "dt"
-  num.stages <- 4
   
   run.str <- substr(file.suffix, nchar(file.suffix) - 1, nchar(file.suffix))
   
   fimp.matrix <- setup.fimp.matrix(rdv.type, source.dir, run.str)
   
-  results.matrix <- setup.results.matrix(model.abv,num.stages)
+  results.matrix <- setup.results.matrix(model.abv,length(stage.list))
   
   # stage.num <- 1
   
-  for(stage.num in 1:num.stages) {
-  
-    rm.col <- 1
+  for(stage.num in 1:length(stage.list)) {
     
-    if (stage.num == 1) { 
-      stage = "ext"
-    } else if (stage.num == 2) {
-      stage = "int1"
-    } else if  (stage.num == 3) {
-      stage = "int2"
-    } else if  (stage.num == 4) {
-      stage = "int3"
-    } else {
-      stage = "int3_s"
-    }
+    stage <- stage.list[stage.num]
+    
+    rm.col <- 1
     
     print(paste0("Run: ", run.str, " Model: ",model.name," Stage: ",stage))
     

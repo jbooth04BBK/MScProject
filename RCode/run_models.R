@@ -16,7 +16,6 @@ library('DiagrammeR') # NB installed package
 library('rsvg') # NB installed package
 library('DiagrammeRsvg') # NB installed package
 
-
 # Clear work space
 rm(list = ls())
 
@@ -47,6 +46,10 @@ if (data.adjusted) {
 }
 
 importance.min <- 1.0
+
+model.list = c("dt","rf","xgb")
+stage.list = c("ext","int1","int2","int3")
+
 num.runs <- 5
 
 # Each run will have it's own sufix and random seed
@@ -57,11 +60,11 @@ for(run.num in 1:num.runs) {
   now <- Sys.time()
   run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
-  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
+  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
   
-  RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
+  RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
   
-  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix)
+  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
   
 }
 
@@ -74,20 +77,15 @@ for(run.num in 1:num.runs) {
 
 comb.results <- data.frame()
 
-model.abv = "dt"
-mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
-
-comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
-
-model.abv = "rf"
-mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
-
-comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
-
-model.abv = "xgb"
-mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
-
-comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+for(model.num in 1:length(model.list)) {
+  
+  model.abv <- model.list[model.num]
+  
+  mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
+  
+  comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+  
+}
 
 # Change run into a factor
 comb.results$run <- factor(comb.results$run)
@@ -126,20 +124,15 @@ ggsave(paste0(results.sub.dir, "/", "comb_accuracy_model_run",".png"))
 
 comb.results <- data.frame()
 
-model.abv = "dt"
-mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
+for(model.num in 1:length(model.list)) {
+  
+  model.abv <- model.list[model.num]
+  
+  mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
 
-comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
-
-model.abv = "rf"
-mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
-
-comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
-
-model.abv = "xgb"
-mergeCSV("df.results", model.abv,"_feature_importance_matrix", results.sub.dir, num.runs)
-
-comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
+  comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
+  
+}
 
 # we want to see how feature importance changes with random seed.
 # NB What we have already is by random seed (Run)
@@ -151,24 +144,10 @@ comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","
 
 comb.results$feature <- with(comb.results, reorder(feature, ext + int1 + int2 + int3))
 
-num.stages <- 4
+for(stage.num in 1:length(stage.list)) {
+  
+  stage <- stage.list[stage.num]
 
-for(stage.num in 1:num.stages) {
-  
-  rm.col <- 1
-  
-  if (stage.num == 1) { 
-    stage = "ext"
-  } else if (stage.num == 2) {
-    stage = "int1"
-  } else if  (stage.num == 3) {
-    stage = "int2"
-  } else if  (stage.num == 4) {
-    stage = "int3"
-  } else {
-    stage = "int3_s"
-  }
-  
   data.m.ss <- melt(comb.results, id=c("model", "run", "feature"))
   data.m.ss <- subset(data.m.ss, value > importance.min)
   data.m.ss <- subset(data.m.ss, variable == stage)
@@ -183,38 +162,28 @@ for(stage.num in 1:num.stages) {
   
   print(p)
   
-  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_", stage, ".png"))
+  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_stage_", stage, ".png"))
 
 }
 
-num.models <- 3
-
-for(model.num in 1:num.models) {
+for(run.num in 1:num.runs) {
   
-  rm.col <- 1
-  
-  if (model.num == 1) { 
-    model.abv = "dt"
-  } else if (model.num == 2) {
-    model.abv = "rf"
-  } else {
-    model.abv = "xgb"
-  }
+  run.str <- sprintf("%02d", run.num)
   
   data.m.ss <- melt(comb.results, id=c("model", "run", "feature"))
   data.m.ss <- subset(data.m.ss, value > importance.min)
-  data.m.ss <- subset(data.m.ss, model == model.abv)
+  data.m.ss <- subset(data.m.ss, run == run.num)
   
-  plot.title = paste0("Compare Feature Importance - Model: ", model.abv)
+  plot.title = paste0("Compare Feature Importance - run: ", run.str)
   
-  p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
+  p <- ggplot(data.m.ss, aes(x=model, y=feature)) 
   p <- p + ggtitle(plot.title)
   p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
   p <- p + geom_text(aes(label = round(value, 1)), size = 2)
-  p <- p + facet_grid(cols = vars(run))
+  p <- p + facet_grid(cols = vars(variable))
   
   print(p)
   
-  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_", model.abv, ".png"))
-
+  ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_run_", run.str, ".png"))
+  
 }
