@@ -23,16 +23,7 @@ def get_lrmodel_results(destination_folder, measures):
     if plot_maxrows%2 != 0:
         plot_maxrows += 1
 
-    fig, axs = plt.subplots(plot_maxrows, plot_maxcols)
-
-    # axs[0, 0].plot(x, y)
-    # axs[0, 0].set_title('Axis [0, 0]')
-    # axs[0, 1].plot(x, y, 'tab:orange')
-    # axs[0, 1].set_title('Axis [0, 1]')
-    # axs[1, 0].plot(x, -y, 'tab:green')
-    # axs[1, 0].set_title('Axis [1, 0]')
-    # axs[1, 1].plot(x, -y, 'tab:red')
-    # axs[1, 1].set_title('Axis [1, 1]')
+    fig, axs = plt.subplots(plot_maxrows, plot_maxcols, figsize=(10, 10))
 
     plot_index = 1
     plot_row = 0
@@ -88,9 +79,9 @@ def get_lrmodel_results(destination_folder, measures):
                     lr_results[measure + "_" + sex + "_" + age] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
 
         axs[plot_row, plot_col].set_title(str(measure))
-        # axs[plot_row, plot_col].xlabel('Age In Days')
-        # axs[plot_row, plot_col].ylabel('Measurement')
-        # axs[plot_row, plot_col].legend(loc='upper left')
+
+        # if str(measure) == 'spleen_weight':
+        #     axs[plot_row, plot_col].set_ylim(0,200)
 
         plot_index += 1
 
@@ -100,6 +91,8 @@ def get_lrmodel_results(destination_folder, measures):
         else:
             plot_col += 1
 
+    plt.suptitle('Visualisation of Normal Measurement Predictions')
+    plt.tight_layout()
     plt.show()
 
     return lr_results
@@ -339,7 +332,7 @@ def main():
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
-    measures_all = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length","heart_weight","comb_lung_weight","liver_weight","pancreas_weight","thymus_weight","spleen_weight","comb_adrenal_weight","thyroid_weight","comb_kidney_weight","brain_weight"]
+    measures_all = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length","heart_weight","comb_lung_weight","liver_weight","pancreas_weight","thymus_weight","c","comb_adrenal_weight","thyroid_weight","comb_kidney_weight","brain_weight"]
 
     lr_results = get_lrmodel_results(destination_folder, measures_all)
 
