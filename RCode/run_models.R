@@ -22,7 +22,7 @@ rm(list = ls())
 source("study_functions.R")
 source("dtree_study.R")
 source("rforest_study.R")
-source("GBoost_study.R")
+source("GBoost_study_tune.R")
 
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
@@ -45,7 +45,7 @@ if (data.adjusted) {
   rdv.type = ""
 }
 
-importance.min <- 1.0
+importance.min <- 1.5
 
 model.list = c("dt","rf","xgb")
 stage.list = c("ext","int1","int2","int3")
@@ -83,12 +83,14 @@ for(model.num in 1:length(model.list)) {
   
   mergeCSV("df.results", model.abv,"_results_matrix", results.sub.dir, num.runs)
   
-  comb.results <- rbind(comb.results,df.results[,c("model","run","stage","accuracy")])
+  comb.results <- rbind(comb.results,df.results[,c("model",'run','run_time','rdv_type', 'run_seed', 'stage', 'observations','train_cod2_01', 'train_cod2_02', 'test_cod2_01', 'test_cod2_02','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')])
   
 }
 
 # Change run into a factor
 comb.results$run <- factor(comb.results$run)
+
+write.csv(comb.results, file = paste0(results.sub.dir, "/comb_results_matrix_all", ".csv"),row.names=FALSE, na="")
 
 # Visualization
 p <- ggplot(comb.results, aes(x = run, y = accuracy, group = stage)) 
@@ -133,6 +135,8 @@ for(model.num in 1:length(model.list)) {
   comb.results <- rbind(comb.results,df.results[,c("model","run","feature","ext","int1","int2","int3")])
   
 }
+
+write.csv(comb.results, file = paste0(results.sub.dir, "/comb_feature_importance_matrix_all", ".csv"),row.names=FALSE, na="")
 
 # we want to see how feature importance changes with random seed.
 # NB What we have already is by random seed (Run)
@@ -187,3 +191,4 @@ for(run.num in 1:num.runs) {
   ggsave(paste0(results.sub.dir, "/", "compare_feature_importance_run_", run.str, ".png"))
   
 }
+

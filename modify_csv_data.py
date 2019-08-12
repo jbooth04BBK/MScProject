@@ -80,8 +80,10 @@ def get_lrmodel_results(destination_folder, measures):
 
         axs[plot_row, plot_col].set_title(str(measure))
 
-        # if str(measure) == 'spleen_weight':
-        #     axs[plot_row, plot_col].set_ylim(0,200)
+        if str(measure) in ["heart_weight", "pancreas_weight", "thymus_weight", "spleen_weight", "comb_kidney_weight"]:
+            axs[plot_row, plot_col].set_ylim(0,200)
+        elif str(measure) in ["comb_adrenal_weight", "thyroid_weight"]:
+            axs[plot_row, plot_col].set_ylim(0,50)
 
         plot_index += 1
 
@@ -332,7 +334,7 @@ def main():
 
     destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
 
-    measures_all = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length","heart_weight","comb_lung_weight","liver_weight","pancreas_weight","thymus_weight","c","comb_adrenal_weight","thyroid_weight","comb_kidney_weight","brain_weight"]
+    measures_all = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length","heart_weight","comb_lung_weight","liver_weight","pancreas_weight","thymus_weight","spleen_weight","comb_adrenal_weight","thyroid_weight","comb_kidney_weight","brain_weight"]
 
     lr_results = get_lrmodel_results(destination_folder, measures_all)
 

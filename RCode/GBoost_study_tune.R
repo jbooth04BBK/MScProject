@@ -8,65 +8,65 @@
 # https://insightr.wordpress.com/2018/05/17/tuning-xgboost-in-r-part-i/
 #
 
-#----- Initialise model
-
-# Load libraries
-library(dplyr)
-library(ggplot2) 
-library(rpart)
-library(rpart.plot)
-library(caret)
-library(lubridate)
-library(reshape2)
-# xgboost added:
-library(xgboost)
-library('DiagrammeR') # NB installed package
-library('rsvg') # NB installed package
-library('DiagrammeRsvg') # NB installed package
-
-# Clear work space
-rm(list = ls())
-
-source("study_functions.R")
-
-source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
-results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-
-study.prefix <- "run_11_"
-
-now <- Sys.time()
-sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
-results.sub.dir <- file.path(results.dir, sub.dir)
-
-if (!dir.exists(results.sub.dir)) {
-  dir.create(results.sub.dir)
-}
-
-# Adjusted data or not for this study
-data.adjusted <- TRUE
-if (data.adjusted) {
-  rdv.type = "_adj"
-} else {
-  rdv.type = ""
-}
-
-importance.min <- 1.0
-
-model.list = c("dt","rf","xgb")
+# #----- Initialise model
+# 
+# # Load libraries
+# library(dplyr)
+# library(ggplot2) 
+# library(rpart)
+# library(rpart.plot)
+# library(caret)
+# library(lubridate)
+# library(reshape2)
+# # xgboost added:
+# library(xgboost)
+# library('DiagrammeR') # NB installed package
+# library('rsvg') # NB installed package
+# library('DiagrammeRsvg') # NB installed package
+# 
+# # Clear work space
+# rm(list = ls())
+# 
+# source("study_functions.R")
+# 
+# source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+# results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
+# 
+# study.prefix <- "run_11_"
+# 
+# now <- Sys.time()
+# sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
+# results.sub.dir <- file.path(results.dir, sub.dir)
+# 
+# if (!dir.exists(results.sub.dir)) {
+#   dir.create(results.sub.dir)
+# }
+# 
+# # Adjusted data or not for this study
+# data.adjusted <- TRUE
+# if (data.adjusted) {
+#   rdv.type = "_adj"
+# } else {
+#   rdv.type = ""
+# }
+# 
+# importance.min <- 1.0
+# 
+# model.list = c("dt","rf","xgb")
 # stage.list = c("ext","int1","int2","int3")
-stage.list = c("ext")
+# # stage.list = c("ext")
+# 
+# run.num <- 1
+#   
+# file.suffix <- sprintf("_%02d", run.num)
+#   
+# now <- Sys.time()
+# run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+#   
+#   
+# #----- End initialise
 
-run.num <- 1
-  
-file.suffix <- sprintf("_%02d", run.num)
-  
-now <- Sys.time()
-run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
-  
-  
-#----- End initialise
-
-# RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
+RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
   
   set.seed(run.seed)
   
@@ -167,21 +167,22 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     
     # = parameters = #
     # = nrounds candidates = #
-    nr.list <- c(100,200,300)
+    # nr.list <- c(100,200,300)
+    nr.list <- c(1000)
     # = eta candidates = #
-    eta.list <- c(0.05,0.1,0.2,0.5,1)
+    eta.list <- c(0.05,0.1,0.2,0.3)
     # = colsample_bylevel candidates = #
     cs.list <- c(1/3,2/3,1)
     # = max_depth candidates = #
-    md.list <- c(4,5,6)
+    md.list <- c(5,6)
     # = sub_sample candidates = #
-    ss.list <- c(0.25,0.5,0.75,1)
+    ss.list <- c(0.5)
     # = min_child_weights candidates = #
-    mcw.list <- c(1,10,100,400)
+    mcw.list <- c(1)
     # = gamma candidates = #
-    gamma.list <- c(0.1,1,10,100)
+    gamma.list <- c(0,0.1,1)
     
-    # 3 x 5 x 3 x 3 x 4 x 4 x 4 = 8,640 combinations 1 second each = 2.4 hours
+    # 3 x 5 x 3 x 3 x 4 x 4 x 4 = 8,640 combinations 1 second each = 2.4 hours, took 3.5 hours
     
     xgbGrid <- expand.grid(nrounds = nr.list,  
                            max_depth = md.list,
@@ -352,4 +353,6 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   #################################
 
-# }
+}
+  
+  
