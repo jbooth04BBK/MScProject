@@ -27,7 +27,7 @@ source("GBoost_study_tune.R")
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-study.prefix <- "run_10_"
+study.prefix <- "run_12_"
 
 now <- Sys.time()
 sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))

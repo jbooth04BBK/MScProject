@@ -7,7 +7,10 @@
 # https://datascienceplus.com/extreme-gradient-boosting-with-r/
 # https://insightr.wordpress.com/2018/05/17/tuning-xgboost-in-r-part-i/
 #
-
+# More tuning:
+# https://www.analyticsvidhya.com/blog/2016/03/complete-guide-parameter-tuning-xgboost-with-codes-python/
+# https://www.analyticsvidhya.com/blog/2016/01/xgboost-algorithm-easy-steps/
+# 
 #----- Initialise model
 
 # Load libraries
@@ -32,7 +35,7 @@ source("study_functions.R")
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-study.prefix <- "run_11_"
+study.prefix <- "run_12_"
 
 now <- Sys.time()
 sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
@@ -79,9 +82,9 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   results.matrix <- setup.results.matrix(model.abv,length(stage.list))
   
-  # stage.num <- 1
+  stage.num <- 1
   
-  for(stage.num in 1:length(stage.list)) {
+  # for(stage.num in 1:length(stage.list)) {
     
     stage <- stage.list[stage.num]
     
@@ -124,38 +127,128 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     #########################################################
     # Further Data adjustments for XGBoost
     
-    xgb.data <- clean_RDVData
+    # Do it once with other paramters set to defaults
+    # gradually chnage them to chosen values
+    # repeat process with parameters set to chosen values and see if they change.
     
-    num_class = length(levels(xgb.data$cod2_summ))
-    cod2_summ = clean_RDVData$cod2_summ
+    # = parameters = #
+    # = eta candidates = #
+    # eta=c(0.05,0.1,0.2,0.3,0.5,1)
+    eta=c(0.05,0.1,0.2,0.25,0.3,0.35)
+    # = max_depth candidates = #
+    md=c(2,4,6,8)
+    # = sub_sample candidates = #
+    ss=c(0.25,0.5,0.75,1)
+    # = colsample_bytree candidates = #
+    ct=c(0.25,0.5,0.75,1)
+    # = gamma candidates = #
+    gamma=c(0.1,1,5,10)
+    # = min_child_weight candidates = #
+    mcw=c(1,4,7,10)
     
-    # Convert from class to numeric
-    label <- as.integer(xgb.data$cod2_summ) - 1
-    ## label <- as.factor(label) 
-    xgb.data$cod2_summ = NULL
+    all=c(1,2,3,4)
     
-    n = nrow(xgb.data)
-    train.index = sample(n,floor(0.80 * n))
-    train.data = as.matrix(xgb.data[train.index,])
-    train.label = label[train.index]
-    test.data = as.matrix(xgb.data[-train.index,])
-    test.label = label[-train.index]
+    random.seeds = sample(1:500, 5)
     
-    # Store proportional split of COD2_SUMM for this run    
-    results.matrix[stage.num,rm.col] = prop.table(table(train.label))[1]
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = prop.table(table(train.label))[2]
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = prop.table(table(test.label))[1]
-    rm.col = rm.col + 1
-    results.matrix[stage.num,rm.col] = prop.table(table(test.label))[2]
-    rm.col = rm.col + 1
+    # pred_eta <- matrix(NA, length(eta) * length(random.seeds),3)
+    params.list <- all
+    param.name = "All Parameters Set"
+    pred.param <- matrix(NA, length(params.list) * length(random.seeds),3)
     
-    # Transform the two data sets into xgb.Matrix
-    xgb.train = xgb.DMatrix(data=train.data,label=train.label)
-    xgb.test = xgb.DMatrix(data=test.data,label=test.label)
- 
-    # Start Tuning
+    for(seed.num in 1:length(random.seeds)){
+      
+      random.seed = random.seeds[seed.num]
+
+      xgb.data <- clean_RDVData
+      
+      num_class = length(levels(xgb.data$cod2_summ))
+      cod2_summ = clean_RDVData$cod2_summ
+      
+      # Convert from class to numeric
+      label <- as.integer(xgb.data$cod2_summ) - 1
+      ## label <- as.factor(label) 
+      xgb.data$cod2_summ = NULL
+      
+      n = nrow(xgb.data)
+      train.index = sample(n,floor(0.80 * n))
+      train.data = as.matrix(xgb.data[train.index,])
+      train.label = label[train.index]
+      test.data = as.matrix(xgb.data[-train.index,])
+      test.label = label[-train.index]
+      
+      # Transform the two data sets into xgb.Matrix
+      xgb.train = xgb.DMatrix(data=train.data,label=train.label)
+      xgb.test = xgb.DMatrix(data=test.data,label=test.label)
+      
+      # i = 1
+      for(i in 1:length(params.list)){
+        
+        # params.list[i]
+        
+        params=list(
+          booster="gbtree",
+          max_depth=6, 
+          gamma=5,
+          min_child_weight=4,
+          subsample=0.75,
+          colsample_bytree=0.5,
+          objective="multi:softprob",
+          eval_metric="mlogloss",
+          num_class=num_class 
+        )
+        
+        
+        xgb.fit=xgb.train(
+                    params=params,
+                    data=xgb.train,
+                    nrounds=1000,
+                    nthreads=1,
+                    early_stopping_rounds=10,
+                    watchlist=list(val1=xgb.train,val2=xgb.test),
+                    verbose=0
+        )
+        
+        # Predict outcomes with the test data - match objective and eval_metric above
+        xgb.pred = predict(xgb.fit,test.data,reshape=T)
+        xgb.pred = as.data.frame(xgb.pred)
+        colnames(xgb.pred) = levels(cod2_summ)
+        
+        # Use the predicted label with the highest probability
+        xgb.pred$prediction = apply(xgb.pred,1,function(x) colnames(xgb.pred)[which.max(x)])
+        xgb.pred$label = levels(cod2_summ)[test.label+1]
+        
+        # Calculate the final accuracy
+        result = sum(xgb.pred$prediction==xgb.pred$label)/nrow(xgb.pred)
+        pred.param[i + ((seed.num - 1) * length(params.list)),1] = params.list[i]
+        pred.param[i + ((seed.num - 1) * length(params.list)),2] = result
+        pred.param[i + ((seed.num - 1) * length(params.list)),3] = seed.num
+      }
+      
+    }
+      
+    pred.param = data.frame(pred.param)
+    pred.param$X1 <- factor(pred.param$X1)
+    pred.param$X3 <- factor(pred.param$X3)
+    
+    p <- ggplot(pred.param, aes(x = X1, y = X2, group = X3)) 
+    p <- p + geom_line(aes(color=X3))
+    p <- p + geom_point()
+    p <- p + ylim(0.5, 0.8)
+    p <- p + ggtitle(paste0(param.name," Accuracy"))
+    p <- p + ylab("Accuracy")
+    p <- p + xlab(param.name)
+
+    print(p)
+      
+    # eta = 0.25 OK on pass 2
+    # max_depth = 6 OK on Pass 2
+    # subsamplle = .75
+    # colsample_bytree = 0.50
+    # gamma = 5
+    # min_child_weight = 4
+    
+
+    # Original work
     
     xgb_trcontrol = trainControl(
       method = "cv",
@@ -321,7 +414,7 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     gr <- xgb.plot.tree(model=xgb.fit, trees=0, show_node_id = TRUE, render=FALSE) 
     export_graph(gr, paste0(results.sub.dir, "/", model.abv, "_tree_",stage, file.suffix,".png"), width=1500, height=1900)
 
-  }
+  # }
   
   #############################
   ## graph combined importance
@@ -353,6 +446,6 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
   #################################
 
-}
+# }
   
   
