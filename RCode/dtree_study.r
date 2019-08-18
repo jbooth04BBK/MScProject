@@ -6,54 +6,57 @@
 # https://infocenter.informationbuilders.com/wf80/index.jsp?topic=%2Fpubdocs%2FRStat16%2Fsource%2Ftopic47.htm
 #
 
-# #--- Start initialise function
-# 
-# # Load libraries
-# library(dplyr)
-# library(ggplot2) 
-# library(rpart)
-# library(rpart.plot)
-# library(caret)
-# library(lubridate)
-# library(reshape2)
-# 
-# # Clear work space
-# rm(list = ls())
-# 
-# source("study_functions.R")
-# 
-# source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
-# results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-# 
-# study.prefix <- "run_10_"
-# 
-# now <- Sys.time()
-# sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
-# results.sub.dir <- file.path(results.dir, sub.dir)
-# 
-# if (!dir.exists(results.sub.dir)) {
-#   dir.create(results.sub.dir)
-# }
-# 
-# # Adjusted data or not for this study
-# data.adjusted <- TRUE
-# if (data.adjusted) {
-#   rdv.type = "_adj"
-# } else {
-#   rdv.type = ""
-# }
-# 
-# importance.min <- 1.0
-# 
-# run.num <- 1
-# file.suffix <- sprintf("_%02d", run.num)
-# 
-# now <- Sys.time()
-# run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
-# 
-# #--- End initialise function
+#--- Start initialise function
 
-RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
+# Load libraries
+library(dplyr)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(lubridate)
+library(reshape2)
+
+# Clear work space
+rm(list = ls())
+
+source("study_functions.R")
+
+source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
+
+study.prefix <- "run_12_"
+
+now <- Sys.time()
+sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
+results.sub.dir <- file.path(results.dir, sub.dir)
+
+if (!dir.exists(results.sub.dir)) {
+  dir.create(results.sub.dir)
+}
+
+# Adjusted data or not for this study
+data.adjusted <- TRUE
+if (data.adjusted) {
+  rdv.type = "_adj"
+} else {
+  rdv.type = ""
+}
+
+importance.min <- 1.5
+
+model.list = c("dt","rf","xgb")
+stage.list = c("ext","int1","int2","int3")
+
+run.num <- 1
+file.suffix <- sprintf("_%02d", run.num)
+
+now <- Sys.time()
+run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+
+#--- End initialise function
+
+# RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
   
   set.seed(run.seed)
   
@@ -66,9 +69,9 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   results.matrix <- setup.results.matrix(model.abv,length(stage.list))
   
-  # stage.num <- 1
+  stage.num <- 1
   
-  for(stage.num in 1:length(stage.list)) {
+  # for(stage.num in 1:length(stage.list)) {
     
     stage <- stage.list[stage.num]
     
@@ -213,11 +216,15 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     imp <- subset(imp, Overall > importance.min)
   
     total_imp = sum(imp)
-    
+    print(total_imp)
     for (imp_row in 1:nrow(imp)){
       res_row = which(fimp.matrix$feature == rownames(imp)[imp_row])
       fimp.matrix[res_row, stage.num + 2] <- (imp[imp_row,1] / total_imp) * 100
+      imp[imp_row,1] <- (imp[imp_row,1] / total_imp) * 100
     }
+    
+    # Remove less import features for clarity
+    imp <- subset(imp, Overall > importance.min)
     
     imp$varnames <- rownames(imp) # row names to column
     rownames(imp) <- NULL  
@@ -271,7 +278,7 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
       }
     }
     
-  } ## end of For loop
+  # } ## end of For loop
   
   #############################
   ## graph combined importance
@@ -302,4 +309,4 @@ RunDTModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
   
   #################################
 
-}
+# }
