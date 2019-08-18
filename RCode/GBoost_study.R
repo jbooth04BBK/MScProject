@@ -140,6 +140,21 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
       subsample.value <- 1
       colsample_bytree.value <- 1
     }  
+    
+    #Store best values
+    results.matrix[stage.num,rm.col] = eta.value
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = max_depth.value
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = gamma.value
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = min_child_weight.value
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = subsample.value
+    rm.col = rm.col + 1
+    results.matrix[stage.num,rm.col] = colsample_bytree.value
+    rm.col = rm.col + 1
+    
     params=list(
       booster="gbtree",
       eta=eta.value,

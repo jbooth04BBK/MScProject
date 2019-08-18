@@ -81,13 +81,13 @@ setup.results.matrix <- function(model.abv, num.stages) {
   ######################################
   # Create matrix to store results
   ######################################
-  
+
   if (model.abv == "dt") {
     column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','train_cod2_01', 'train_cod2_02', 'test_cod2_01', 'test_cod2_02', 'max_accuracy','minsplit','maxdepth','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else if (model.abv == "rf") {
     column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','train_cod2_01', 'train_cod2_02', 'test_cod2_01', 'test_cod2_02','best_def_mtry','bmtd_accuracy','best_mtry','bmt_accuracy','best_maxnodes','bmn_accuracy','best_ntree','bnt_accuracy','max_accuracy','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   } else {
-    column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','train_cod2_01', 'train_cod2_02', 'test_cod2_01', 'test_cod2_02','nrounds','max_depth','eta','gamma','colsample_bytree','subsample','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
+    column_names = c('run','run_time','rdv_type', 'run_seed', 'stage', 'observations','train_cod2_01', 'train_cod2_02', 'test_cod2_01', 'test_cod2_02','eta','max_depth','gamma','min_child_depth','subsample','colsample_bytree','accuracy','cm_r1_c1','cm_r1_c2','cm_r2_c1','cm_r2_c2')
   }
   
   results.matrix = matrix(nrow = num.stages, ncol = length(column_names))
