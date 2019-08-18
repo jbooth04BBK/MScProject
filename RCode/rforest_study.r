@@ -283,8 +283,6 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
                     maxnodes = best.maxnodes,
                     ntree = best.ntree)
     
-    print(max(fit_rf$results$Accuracy))
-    
     results.matrix[stage.num,rm.col] = max(fit_rf$results$Accuracy)
     rm.col = rm.col + 1
     
@@ -326,6 +324,8 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     
     results.matrix[stage.num,rm.col] = accuracy_fit(fit_rf, data_test, "raw")
     rm.col = rm.col + 1
+    
+    print(accuracy_fit(fit_rf, data_test, "raw"))
     
     table_mat <- cmatrix_fit(fit_rf, data_test, "raw")
     
