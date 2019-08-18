@@ -117,6 +117,20 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
       min_child_weight.value <- 8
       subsample.value <- 0.725
       colsample_bytree.value <- 0.50
+    } else if (stage == "int2") {
+      eta.value <- 0.2
+      max_depth.value <- 5
+      gamma.value <- 1
+      min_child_weight.value <- 5
+      subsample.value <- 0.775
+      colsample_bytree.value <- 0.5
+    } else if (stage == "int3") {
+      eta.value <- 0.17
+      max_depth.value <- 5
+      gamma.value <- 3.2
+      min_child_weight.value <- 4
+      subsample.value <- 0.65
+      colsample_bytree.value <- 0.525
     } else {
       # default values    
       eta.value <- 0.3

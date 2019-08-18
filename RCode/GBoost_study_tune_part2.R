@@ -57,7 +57,7 @@ importance.min <- 1.0
 
 model.list = c("dt","rf","xgb")
 # stage.list = c("ext","int1","int2","int3")
-stage.list = c("int1")
+stage.list = c("int3")
 
 run.num <- 1
 
@@ -139,12 +139,12 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     subsample.value <- 1
     colsample_bytree.value <- 1
     
-    param.name = "eta"
-    param.name = "max_depth"
-    param.name = "gamma"
-    param.name = "min_child_weight"
-    param.name = "subsample"
-    param.name = "colsample_bytree"
+    # param.name = "eta"
+    # param.name = "max_depth"
+    # param.name = "gamma"
+    # param.name = "min_child_weight"
+    # param.name = "subsample"
+    # param.name = "colsample_bytree"
     param.name = "All Parameters Set"
     
     random.seeds = sample(1:500, 10)
@@ -277,19 +277,19 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     p <- ggplot(pred.param, aes(x = X1, y = X2, group = X3)) 
     p <- p + geom_line(aes(color=X3))
     p <- p + geom_point()
-    p <- p + ylim(0.5, 0.8)
+    p <- p + ylim(0.5, 0.90)
     p <- p + ggtitle(paste0(param.name," Accuracy, stage: ",stage))
     p <- p + ylab("Accuracy")
     p <- p + xlab(param.name)
 
     print(p)
 
-    eta.value <- 0.185
-    max_depth.value <- 6
-    gamma.value <- 2.65
-    min_child_weight.value <- 8
-    subsample.value <- 0.725
-    colsample_bytree.value <- 0.50
+    eta.value <- 0.17
+    max_depth.value <- 5
+    gamma.value <- 3.2
+    min_child_weight.value <- 4
+    subsample.value <- 0.65
+    colsample_bytree.value <- 0.525
     
     # eta = 0.25 OK on pass 2
     # max_depth = 6 OK on Pass 2
