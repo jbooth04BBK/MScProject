@@ -57,7 +57,7 @@ importance.min <- 1.0
 
 model.list = c("dt","rf","xgb")
 # stage.list = c("ext","int1","int2","int3")
-stage.list = c("ext")
+stage.list = c("int1")
 
 run.num <- 1
 
@@ -130,30 +130,45 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     # Do it once with other paramters set to defaults
     # gradually chnage them to chosen values
     # repeat process with parameters set to chosen values and see if they change.
+
+    # default values    
+    eta.value <- 0.3
+    max_depth.value <- 6 
+    gamma.value <- 0
+    min_child_weight.value <- 1
+    subsample.value <- 1
+    colsample_bytree.value <- 1
     
-    # = parameters = #
-    # = eta candidates = #
-    # eta=c(0.05,0.1,0.2,0.3,0.5,1)
-    eta=c(0.05,0.1,0.2,0.25,0.3,0.35)
-    # = max_depth candidates = #
-    md=c(2,4,6,8)
-    # = sub_sample candidates = #
-    ss=c(0.25,0.5,0.75,1)
-    # = colsample_bytree candidates = #
-    ct=c(0.25,0.5,0.75,1)
-    # = gamma candidates = #
-    gamma=c(0.1,1,5,10)
-    # = min_child_weight candidates = #
-    mcw=c(1,4,7,10)
-    
-    all=c(1,2,3,4)
-    
-    random.seeds = sample(1:500, 5)
-    
-    # pred_eta <- matrix(NA, length(eta) * length(random.seeds),3)
-    params.list <- all
+    param.name = "eta"
+    param.name = "max_depth"
+    param.name = "gamma"
+    param.name = "min_child_weight"
+    param.name = "subsample"
+    param.name = "colsample_bytree"
     param.name = "All Parameters Set"
+    
+    random.seeds = sample(1:500, 10)
+    
+    # = parameter lists = #
+    if (param.name == "eta") { 
+      params.list <- c(0.05,0.1,0.2,0.25,0.3,0.35)
+    } else if  (param.name == "max_depth") {
+      params.list <- c(2,4,6,8)
+    } else if  (param.name == "gamma") {
+      params.list <- c(0.1,1,5,10)
+    } else if  (param.name == "min_child_weight") {
+      params.list <- c(1,4,7,10)
+    } else if  (param.name == "subsample") {
+      params.list <- c(0.25,0.5,0.75,1)
+    } else if  (param.name == "colsample_bytree") {
+      params.list <- c(0.25,0.5,0.75,1)
+    } else {
+      params.list <- c(1,2,3,4)
+    }  
+
     pred.param <- matrix(NA, length(params.list) * length(random.seeds),3)
+    
+    param.total <- 0
     
     for(seed.num in 1:length(random.seeds)){
       
@@ -180,24 +195,41 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
       xgb.train = xgb.DMatrix(data=train.data,label=train.label)
       xgb.test = xgb.DMatrix(data=test.data,label=test.label)
       
+      param.max <- 0.0
+      max.param <- ""
+      
       # i = 1
       for(i in 1:length(params.list)){
         
         # params.list[i]
         
+        if (param.name == "eta") { 
+          eta.value = params.list[i]
+        } else if  (param.name == "max_depth") {
+          max_depth.value = params.list[i]
+        } else if  (param.name == "gamma") {
+          gamma.value = params.list[i]
+        } else if  (param.name == "min_child_weight") {
+          min_child_weight.value = params.list[i]
+        } else if  (param.name == "subsample") {
+          subsample.value = params.list[i]
+        } else if  (param.name == "colsample_bytree") {
+          colsample_bytree.value = params.list[i]
+        }  
+        
         params=list(
           booster="gbtree",
-          max_depth=6, 
-          gamma=5,
-          min_child_weight=4,
-          subsample=0.75,
-          colsample_bytree=0.5,
+          eta=eta.value,
+          max_depth=max_depth.value, 
+          gamma=gamma.value,
+          min_child_weight=min_child_weight.value,
+          subsample=subsample.value,
+          colsample_bytree=colsample_bytree.value,
           objective="multi:softprob",
           eval_metric="mlogloss",
           num_class=num_class 
         )
-        
-        
+
         xgb.fit=xgb.train(
                     params=params,
                     data=xgb.train,
@@ -222,10 +254,22 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
         pred.param[i + ((seed.num - 1) * length(params.list)),1] = params.list[i]
         pred.param[i + ((seed.num - 1) * length(params.list)),2] = result
         pred.param[i + ((seed.num - 1) * length(params.list)),3] = seed.num
+        
+        if (result > param.max) {
+          param.max <- result
+          max.param <- params.list[i]
+        }
+
       }
+      
+      print(paste(max.param,param.max))
+      param.total <- param.total + max.param
       
     }
       
+    param.mean <- param.total/length(random.seeds)
+    print(param.mean)
+    
     pred.param = data.frame(pred.param)
     pred.param$X1 <- factor(pred.param$X1)
     pred.param$X3 <- factor(pred.param$X3)
@@ -234,12 +278,19 @@ run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
     p <- p + geom_line(aes(color=X3))
     p <- p + geom_point()
     p <- p + ylim(0.5, 0.8)
-    p <- p + ggtitle(paste0(param.name," Accuracy"))
+    p <- p + ggtitle(paste0(param.name," Accuracy, stage: ",stage))
     p <- p + ylab("Accuracy")
     p <- p + xlab(param.name)
 
     print(p)
-      
+
+    eta.value <- 0.185
+    max_depth.value <- 6
+    gamma.value <- 2.65
+    min_child_weight.value <- 8
+    subsample.value <- 0.725
+    colsample_bytree.value <- 0.50
+    
     # eta = 0.25 OK on pass 2
     # max_depth = 6 OK on Pass 2
     # subsamplle = .75

@@ -89,17 +89,54 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     # Transform the two data sets into xgb.Matrix
     xgb.train = xgb.DMatrix(data=train.data,label=train.label)
     xgb.test = xgb.DMatrix(data=test.data,label=test.label)
+
+    # Original values    
+    # params = list(
+    #   booster="gbtree",
+    #   eta=0.3,
+    #   max_depth=6,## NB Was 9
+    #   gamma=0,
+    #   subsample=1,
+    #   colsample_bytree=1,
+    #   objective="multi:softprob",
+    #   eval_metric="mlogloss",
+    #   num_class=num_class
+    # )
     
-    params = list(
+    if (stage == "ext") { 
+      eta.value <- 0.3
+      max_depth.value <- 6
+      gamma.value <- 5
+      min_child_weight.value <- 4
+      subsample.value <- 0.75
+      colsample_bytree.value <- 0.50
+    } else if (stage == "int1") {
+      eta.value <- 0.185
+      max_depth.value <- 6
+      gamma.value <- 2.65
+      min_child_weight.value <- 8
+      subsample.value <- 0.725
+      colsample_bytree.value <- 0.50
+    } else {
+      # default values    
+      eta.value <- 0.3
+      max_depth.value <- 6 
+      gamma.value <- 0
+      min_child_weight.value <- 1
+      subsample.value <- 1
+      colsample_bytree.value <- 1
+    }  
+    params=list(
       booster="gbtree",
-      eta=0.3,
-      max_depth=6,## NB Was 9
-      gamma=0,
-      subsample=1,
-      colsample_bytree=1,
+      eta=eta.value,
+      max_depth=max_depth.value, 
+      gamma=gamma.value,
+      min_child_weight=min_child_weight.value,
+      subsample=subsample.value,
+      colsample_bytree=colsample_bytree.value,
       objective="multi:softprob",
       eval_metric="mlogloss",
-      num_class=num_class
+      num_class=num_class 
     )
     
     # Train the XGBoost classifer

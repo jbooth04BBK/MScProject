@@ -22,7 +22,7 @@ rm(list = ls())
 source("study_functions.R")
 source("dtree_study.R")
 source("rforest_study.R")
-source("GBoost_study_tune.R")
+source("GBoost_study.R")
 
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
