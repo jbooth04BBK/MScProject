@@ -60,11 +60,65 @@ for(run.num in 1:num.runs) {
   now <- Sys.time()
   run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
   
-  RunDTModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
+  # Create training index to be used by all models.
+  # have to create a train.index for each stage ext.train.index, etc
+  # if comparing models has to be on the same data
   
-  RunRFModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
+  stage = "ext"
+  clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+  ext.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
   
-  RunXGBModel(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list)
+  stage = "int1"
+  clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+  int1.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+  
+  stage = "int2"
+  clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+  int2.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+  
+  stage = "int3"
+  clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+  int3.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+
+  RunDTModel(
+    run.seed, 
+    rdv.type, 
+    importance.min, 
+    source.dir, 
+    results.sub.dir, 
+    file.suffix, 
+    stage.list,
+    ext.train.index,
+    int1.train.index,
+    int2.train.index,
+    int3.train.index
+    )
+  
+  RunRFModel(run.seed, 
+             rdv.type, 
+             importance.min, 
+             source.dir, 
+             results.sub.dir, 
+             file.suffix,
+             stage.list,
+             ext.train.index,
+             int1.train.index,
+             int2.train.index,
+             int3.train.index
+             )
+  
+  RunXGBModel(run.seed, 
+              rdv.type, 
+              importance.min, 
+              source.dir, 
+              results.sub.dir, 
+              file.suffix, 
+              stage.list,
+              ext.train.index,
+              int1.train.index,
+              int2.train.index,
+              int3.train.index
+              )
   
 }
 

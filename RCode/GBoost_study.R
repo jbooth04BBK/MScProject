@@ -4,7 +4,18 @@
 # https://rpubs.com/dalekube/XGBoost-Iris-Classification-Example-in-R
 #
 
-RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
+RunXGBModel <- function(run.seed, 
+                        rdv.type, 
+                        importance.min, 
+                        source.dir, 
+                        results.sub.dir, 
+                        file.suffix, 
+                        stage.list,
+                        ext.train.index,
+                        int1.train.index,
+                        int2.train.index,
+                        int3.train.index
+                        ) {
   
   set.seed(run.seed)
   
@@ -38,18 +49,7 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     results.matrix[stage.num,rm.col] = stage
     rm.col = rm.col + 1
     
-    RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
-    
-    #Remove unwanted columns - gestation_at_delivery_in_days
-    if (stage == "ext") { 
-      clean_RDVData <- RDVData %>%
-        select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study)) %>%
-        na.omit()
-    } else {
-      clean_RDVData <- RDVData %>%
-        select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study, foot_length, crown_rump_length)) %>%
-        na.omit()
-    }  
+    clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
     
     results.matrix[stage.num,rm.col] = nrow(clean_RDVData)
     rm.col = rm.col + 1
@@ -69,8 +69,16 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     label <- as.integer(xgb.data$cod2_summ) - 1
     xgb.data$cod2_summ = NULL
     
-    n = nrow(xgb.data)
-    train.index = sample(n,floor(0.80 * n))
+    if (stage == "ext") { 
+      train.index <- ext.train.index
+    } else if (stage == "int1") {
+      train.index <- int1.train.index
+    } else if (stage == "int2") {
+      train.index <- int2.train.index
+    } else if (stage == "int3") {
+      train.index <- int3.train.index
+    }  
+    
     train.data = as.matrix(xgb.data[train.index,])
     train.label = label[train.index]
     test.data = as.matrix(xgb.data[-train.index,])
@@ -218,8 +226,12 @@ RunXGBModel <- function(run.seed, rdv.type, importance.min, source.dir, results.
     for (imp_row in 1:nrow(imp)){
       res_row = which(fimp.matrix$feature == imp[imp_row,1])
       fimp.matrix[res_row, stage.num + 2] <- (imp[imp_row,2] / total_imp) * 100
+      imp[imp_row,2]  <- (imp[imp_row,2] / total_imp) * 100 
     }
     
+    # Remove less import features for clarity
+    imp <- subset(imp, Gain > importance.min)
+
     plot.title = paste0("Feature Importance - Model: ",model.name,", Stage: ",stage)
     
     p <- ggplot(imp, aes(x=reorder(Feature, Gain), y=Gain))

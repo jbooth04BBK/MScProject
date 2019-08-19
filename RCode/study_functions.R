@@ -2,6 +2,25 @@
 # Functions used by all Studies
 #
 
+return_clean_rdvdata <- function(source.dir, stage, rdv.type) {
+  
+  RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
+  
+  #Remove unwanted columns - gestation_at_delivery_in_days
+  if (stage == "ext") { 
+    clean_RDVData <- RDVData %>%
+      select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study)) %>%
+      na.omit()
+  } else {
+    clean_RDVData <- RDVData %>%
+      select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study, foot_length, crown_rump_length)) %>%
+      na.omit()
+  }  
+  
+  return(clean_RDVData)
+  
+}
+
 # create_train_test(df, size = 0.8, train = TRUE)
 # arguments:
 #  -df: Dataset used to train the model.

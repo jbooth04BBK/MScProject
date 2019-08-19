@@ -4,7 +4,18 @@
 #
 
 
-RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.sub.dir, file.suffix, stage.list) {
+RunRFModel <- function(run.seed, 
+                       rdv.type, 
+                       importance.min, 
+                       source.dir, 
+                       results.sub.dir, 
+                       file.suffix, 
+                       stage.list,
+                       ext.train.index,
+                       int1.train.index,
+                       int2.train.index,
+                       int3.train.index
+                       ) {
   
   set.seed(run.seed)
   
@@ -38,26 +49,25 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
     results.matrix[stage.num,rm.col] = stage
     rm.col = rm.col + 1
     
-    RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_", stage, rdv.type, ".csv"), header=TRUE, sep=",")
-    
-    #Remove unwanted columns - gestation_at_delivery_in_days
-    if (stage == "ext") { 
-      clean_RDVData <- RDVData %>%
-        select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study)) %>%
-        na.omit()
-    } else {
-      clean_RDVData <- RDVData %>%
-        select(-c(event_id, event_start_date, age_category, case_id, gestation_at_delivery_in_days, include_in_study, foot_length, crown_rump_length)) %>%
-        na.omit()
-    }  
+    clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
     
     results.matrix[stage.num,rm.col] = nrow(clean_RDVData)
     rm.col = rm.col + 1
     
     clean_RDVData$cod2_summ <- as.factor(clean_RDVData$cod2_summ)
     
-    data_train <- create_train_test(clean_RDVData, 0.8, train = TRUE)
-    data_test <- create_train_test(clean_RDVData, 0.8, train = FALSE)
+    if (stage == "ext") { 
+      train.index <- ext.train.index
+    } else if (stage == "int1") {
+      train.index <- int1.train.index
+    } else if (stage == "int2") {
+      train.index <- int2.train.index
+    } else if (stage == "int3") {
+      train.index <- int3.train.index
+    }  
+    
+    data_train <- clean_RDVData[train.index, ]
+    data_test  <- clean_RDVData[-train.index, ]
     
     # Store proportional split of COD2_SUMM for this run    
     results.matrix[stage.num,rm.col] =prop.table(table(data_train$cod2_summ))[1]
@@ -300,6 +310,9 @@ RunRFModel <- function(run.seed, rdv.type, importance.min, source.dir, results.s
       fimp.matrix[res_row, stage.num + 2] <- (imp[imp_row,1] / total_imp) * 100
       imp[imp_row,3]  <- (imp[imp_row,1] / total_imp) * 100 
     }
+    
+    # Remove less import features for clarity
+    imp <- subset(imp, value > importance.min)
     
     imp$varnames <- rownames(imp) # row names to column
     rownames(imp) <- NULL  
