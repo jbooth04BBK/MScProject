@@ -148,8 +148,8 @@ write.csv(comb.results, file = paste0(results.sub.dir, "/comb_results_matrix_all
 
 # Visualization
 p <- ggplot(comb.results, aes(x = run, y = accuracy, group = stage)) 
-p <- p + geom_line(aes(color = stage), size=2)
-p <- p + ylim(0.4, 1.0)
+p <- p + geom_line(aes(color = stage), size=1)
+p <- p + ylim(0.55, 0.9)
 p <- p + ggtitle(paste0("Change of Accuracy by Run, by Model "))
 p <- p + facet_grid(rows = vars(model))
 # p <- p + scale_color_manual(values = c("darkred", "steelblue"))
@@ -163,8 +163,8 @@ ggsave(paste0(results.sub.dir, "/", "comb_accuracy_run_model",".png"))
 
 # Visualization
 p <- ggplot(comb.results, aes(x = stage, y = accuracy, group = model)) 
-p <- p + geom_line(aes(color = model), size=2)
-p <- p + ylim(0.4, 1.0)
+p <- p + geom_line(aes(color = model), size=1)
+p <- p + ylim(0.55, 0.9)
 p <- p + ggtitle(paste0("Change of Accuracy by Model, by Run "))
 p <- p + facet_grid(rows = vars(run))
 
