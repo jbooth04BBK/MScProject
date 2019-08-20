@@ -1,0 +1,100 @@
+
+#
+# Multiple plots on a page
+# https://cran.r-project.org/web/packages/egg/vignettes/Ecosystem.html
+#
+
+library(ggplot2) 
+library(gridExtra)
+
+source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
+results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
+study.prefix <- "run_12_"
+sub.dir <- paste0(study.prefix,"20190819_2005")
+results.sub.dir <- file.path(results.dir, sub.dir)
+
+# rdv_demo_selection_02
+
+RDVData <- read.csv(file=paste0(source.dir, "\\rdv_demo_selection_02",  ".csv"), header=TRUE, sep=",")
+
+summary(RDVData)
+str(RDVData)
+
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = cod2_summ, fill = sex)) 
+p <- p + geom_bar()
+p <- p + scale_x_discrete(labels = c('No','Yes','Unknown', 'N/A'))
+p <- p + scale_fill_discrete(name = "Sex", labels = c("Female", "Male", "Unknown"))
+p <- p + xlab("Cause of Death - Determined")
+p <- p + ggtitle("Cause of Death Determined split by Sex")
+
+print(p)
+p1 <- p
+ 
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = cod2_summ, fill = age_category)) 
+p <- p + geom_bar(position=position_dodge())
+p <- p + scale_x_discrete(labels = c('No','Yes','Unknown', 'N/A'))
+p <- p + scale_fill_discrete(name = "Age Catgeory", labels = c("Miscarriage", "Still Birth", "Early Neonatal", "Neonatal","Infant Death","Child Death","N/A"))
+p <- p + xlab("Cause of Death - Determined")
+p <- p + ggtitle("Cause of Death Determined by Age Category")
+
+print(p)
+
+p2 <- p
+
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = number_of_attributes, fill = cod2_summ)) 
+p <- p + geom_histogram(bins = 50)
+p <- p + scale_fill_discrete(name = "Cause of Death\nDetermined", labels = c("No", "Yes", "Unknown", "N/A"))
+p <- p + ggtitle("Number of Attributes")
+
+print(p)
+
+p3 <- p
+
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = year, fill = cod2_summ)) 
+p <- p + geom_histogram(bins = 50)
+p <- p + scale_fill_discrete(name = "Cause of Death\nDetermined", labels = c("No", "Yes", "Unknown", "N/A"))
+p <- p + ggtitle("Number of Attributes")
+
+print(p)
+
+p4 <- p
+
+g <- grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+ggsave(paste0(results.sub.dir, "/", "all_data_vis_grid",".png"),g)
+
+# Include in study
+# Include in study
+# Exclude - COD
+# Exclude - Age
+# Exclude - Incorrect Measurement
+# Exclude - Missing value
+
+
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = cod2_summ, fill = include_in_study)) 
+p <- p + geom_bar()
+p <- p + scale_x_discrete(labels = c('No','Yes','Unknown', 'N/A'))
+p <- p + scale_fill_discrete(name = "Include in study", labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
+p <- p + xlab("Cause of Death - Determined")
+p <- p + ggtitle("Cause of Death Determined split by Include in Study")
+
+print(p)
+p1 <- p
+
+# Visualization cod2_summ
+p <- ggplot(RDVData, aes(x = include_in_study, fill = sex)) 
+p <- p + geom_bar()
+p <- p + scale_x_discrete(labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
+p <- p + scale_fill_discrete(name = "Sex", labels = c("Female", "Male", "Unknown"))
+p <- p + xlab("Include in Study")
+p <- p + ggtitle("Include in Study split by Sex")
+
+print(p)
+p2 <- p
+
+summary(RDVData$include_in_study)

@@ -329,17 +329,18 @@ def create_rdv_selection(cnxn, crsr):
     # Select Patient Attributes
     EventPatientAttributes = []
     EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestational Age
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Gestational Age
 
     # Select Patient Attribute Filters
     EventPatientAttributeFilters = []
-    EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
+    # EventPatientAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # 44 = Age Category
     EventPatientAttributeFilterValues = []
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "001"))
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "002"))
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "003"))
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004"))
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005"))
-    EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "001"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "002"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "003"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "004"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "005"))
+    # EventPatientAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute/AC", None, "006"))
 
     # Select Event Attributes
     EventAttributes = []
@@ -350,13 +351,14 @@ def create_rdv_selection(cnxn, crsr):
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "ATTRIBUTES"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None, "ExternalExam"))
     EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/Reporting", None, "InternalExam"))
+    EventAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "INC_IN_STUDY"))
 
     # Select Event Attribute Filters
     EventAttributeFilters = []
-    EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,"COD2_SUMM"))
+    # EventAttributeFilters.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", None,"COD2_SUMM"))
     EventAttributeFilterValues = []
-    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None,"001"))
-    EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None,"002"))
+    # EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None,"001"))
+    # EventAttributeFilterValues.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", None,"002"))
 
     file_name = "rdv_demo_selection_02"
 
@@ -891,9 +893,9 @@ def main():
 
     # create_rdv_new_attributes(rep_cnxn, rep_crsr)
 
-    # create_rdv_selection(rep_cnxn, rep_crsr)
+    create_rdv_selection(rep_cnxn, rep_crsr)
 
-    create_rdv_measurements(rep_cnxn, rep_crsr)
+    # create_rdv_measurements(rep_cnxn, rep_crsr)
 
     # create_rdv_study(rep_cnxn, rep_crsr, "ext")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1")
