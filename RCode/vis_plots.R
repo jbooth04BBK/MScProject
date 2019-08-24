@@ -105,17 +105,24 @@ p <- p + geom_bar()
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Include in Study", labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
 p <- p + scale_x_discrete(labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
 p <- p + xlab("Include in Study")
-p <- p + ggtitle("Cause of Death Determined split by Include in Study")
+p <- p + ggtitle("Include in Study - Breakdown")
 p <- p + theme_classic()
 
 print(p)
 p1 <- p
 
+# Summarise inc_in_study to 2 variables Yes or No
+RDVData$summary_iis <- RDVData$include_in_study
+RDVData$summary_iis[RDVData$include_in_study=="C003"] <- "C002"
+RDVData$summary_iis[RDVData$include_in_study=="C004"] <- "C002"
+
+summary(RDVData$summary_iis)
+
 # Visualization include in study
-p <- ggplot(RDVData, aes(x = include_in_study, fill = sex)) 
+p <- ggplot(RDVData, aes(x = summary_iis, fill = sex)) 
 p <- p + geom_bar()
-p <- p + scale_x_discrete(labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
-p <- p + scale_fill_discrete(name = "Sex", labels = c("Female", "Male", "Unknown"))
+p <- p + scale_x_discrete(labels = c("Include", "Exclude"))
+p <- p + scale_fill_viridis(discrete = TRUE, name = "Sex", labels = c("Female", "Male", "Unknown"))
 p <- p + xlab("Include in Study")
 p <- p + ggtitle("Include in Study split by Sex")
 p <- p + theme_classic()
@@ -123,22 +130,36 @@ p <- p + theme_classic()
 print(p)
 p2 <- p
 
-# Visualization include in study
-p <- ggplot(RDVData, aes(x = include_in_study, fill = age_category)) 
-p <- p + geom_bar(position=position_dodge())
-p <- p + scale_x_discrete(labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
-p <- p + scale_fill_discrete(name = "Age Catgeory", labels = c("Miscarriage", "Still Birth", "Early Neonatal", "Neonatal","Infant Death","Child Death","N/A"))
-p <- p + xlab("Include in Study")
-p <- p + ggtitle("Include in Study split by Age Category")
-p <- p + theme_classic()
+# # Visualization include in study
+# p <- ggplot(RDVData, aes(x = summary_iis, fill = age_category)) 
+# p <- p + geom_bar(position=position_dodge())
+# p <- p + scale_x_discrete(labels = c("Include", "Exclude"))
+# p <- p + scale_fill_viridis(discrete = TRUE, name = "Age Catgeory", labels = c("Miscarriage", "Still Birth", "Early Neonatal", "Neonatal","Infant Death","Child Death","N/A"))
+# p <- p + xlab("Include in Study")
+# p <- p + ggtitle("Include in Study split by Age Category")
+# p <- p + theme_classic()
+
+p <- ggplot(data = RDVData) + 
+  geom_mosaic(aes(weight = 1, x = product(summary_iis), fill = age_category),na.rm = TRUE) + 
+  scale_fill_viridis(discrete = TRUE, 
+                     labels = c("Miscarriage", "Still Birth", "Early Neonatal", "Neonatal","Infant Death","Child Death","N/A"),
+                     guide = guide_legend(reverse = TRUE))  +
+  scale_x_productlist(labels = c('Include','Exclude','','')) +
+  scale_y_productlist(labels = NULL) +
+  xlab("Include in study") +
+  ggtitle("Include in Study split by Age Category") + 
+  theme_classic() + 
+  theme(axis.title.y = element_blank(),
+        axis.ticks.y = element_blank()
+  )
 
 print(p)
 p3 <- p
 
 # Visualization cod2_summ
-p <- ggplot(RDVData, aes(x = number_of_attributes, fill = include_in_study)) 
+p <- ggplot(RDVData, aes(x = number_of_attributes, fill = summary_iis)) 
 p <- p + geom_histogram(bins = 50)
-p <- p + scale_fill_discrete(name = "Include\nin Study", labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
+p <- p + scale_fill_viridis(discrete = TRUE, name = "Include\nin Study", labels = c("Include", "Exclude"))
 p <- p + xlab("Number of Attributes")
 p <- p + ggtitle("Number of Attributes by Include in study")
 p <- p + theme_classic()

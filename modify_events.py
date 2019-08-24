@@ -629,11 +629,7 @@ def exclude_event_attributes(cnxn, crsr):
         if not exclude_row:
             value = Create_HAS_Tables.get_patient_attribute_value(cnxn, crsr, EventAttributeRow.patient_id, "/PatientAttribute", "AC")
             if not pandas.isnull(value):
-                if value == "001":
-                    caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
-                    Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
-                    exclude_row = True
-                elif value == "002":
+                if value in ["001","002","999"]:
                     caseid = Create_HAS_Tables.get_event_attribute_value(cnxn, crsr, EventAttributeRow.event_id,"/EventAttribute/Observation/PostMortem/tblCases","CASEID")
                     Create_HAS_Tables.update_event_attribute_value(cnxn, crsr, caseid,"/EventAttribute/Observation/PostMortem", "INC_IN_STUDY", "003")
                     exclude_row = True
@@ -719,13 +715,12 @@ def main():
     # create_attribute_no_of_attributes(rep_cnxn, rep_crsr)
 
     # create case and system macro and histo summary attributes
-    create_system_attribute_from_organ_attribute(rep_cnxn, rep_crsr)
+    # create_system_attribute_from_organ_attribute(rep_cnxn, rep_crsr)
 
     # create_reporting_attributes(rep_cnxn, rep_crsr)
 
-    # create_attribute_inc_in_study(rep_cnxn, rep_crsr)
-
-    # exclude_event_attributes(rep_cnxn, rep_crsr)
+    create_attribute_inc_in_study(rep_cnxn, rep_crsr)
+    exclude_event_attributes(rep_cnxn, rep_crsr)
 
     rep_cnxn.close()
     res_cnxn.close()

@@ -328,7 +328,8 @@ def create_rdv_selection(cnxn, crsr):
 
     # Select Patient Attributes
     EventPatientAttributes = []
-    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestational Age
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AG")) # Age in Days
+    EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "GA")) # Gestation At Delivery In Days
     EventPatientAttributes.append(Create_HAS_Tables.GetConceptID(cnxn, crsr, "/PatientAttribute", None, "AC")) # Gestational Age
 
     # Select Patient Attribute Filters
@@ -893,16 +894,16 @@ def main():
 
     # create_rdv_new_attributes(rep_cnxn, rep_crsr)
 
-    create_rdv_selection(rep_cnxn, rep_crsr)
+    # create_rdv_selection(rep_cnxn, rep_crsr)
 
     # create_rdv_measurements(rep_cnxn, rep_crsr)
 
-    # create_rdv_study(rep_cnxn, rep_crsr, "ext")
-    # create_rdv_study(rep_cnxn, rep_crsr, "int1")
+    create_rdv_study(rep_cnxn, rep_crsr, "ext")
+    create_rdv_study(rep_cnxn, rep_crsr, "int1")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
-    # create_rdv_study(rep_cnxn, rep_crsr, "int2")
+    create_rdv_study(rep_cnxn, rep_crsr, "int2")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
-    # create_rdv_study(rep_cnxn, rep_crsr, "int3")
+    create_rdv_study(rep_cnxn, rep_crsr, "int3")
     # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
 
     rep_cnxn.close()
