@@ -317,7 +317,7 @@ RunRFModel <- function(run.seed,
     imp$varnames <- rownames(imp) # row names to column
     rownames(imp) <- NULL  
     
-    plot.title = paste0("Feature Importance - Model: ",model.name,", Stage: ",stage)
+    plot.title = paste0("Relative Feature Importance - Model: ",model.name,", Stage: ",stage)
     
     p <- ggplot(imp, aes(x=reorder(varnames, value), y=value))
     p <- p + geom_point()
@@ -326,6 +326,7 @@ RunRFModel <- function(run.seed,
     p <- p + ylab("Relative Importance")
     p <- p + xlab("Feature")
     p <- p + coord_flip()
+    p <- p + theme_classic()
     
     print(p)
     
@@ -361,12 +362,13 @@ RunRFModel <- function(run.seed,
   # Remove 0 values and create structure to plot
   data.m.ss <- subset(melt(data), value > importance.min)
   # Create plot
-  plot.title = paste0("Feature Importance Heatmap - Model: ",model.name)
+  plot.title = paste0("Relative Feature Importance Heatmap - Model: ",model.name)
   p <- ggplot(data.m.ss, aes(x=variable, y=feature)) 
   p <- p + ggtitle(plot.title)
-  p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_tile(aes(fill = value))
+  p <- p + scale_fill_viridis_c(direction = -1, begin = .3, end = 1)
   p <- p + geom_text(aes(label = round(value, 1)))
-  # p <- p + theme(axis.text=element_text(size=4))
+  p <- p + theme_classic()
   
   print(p)
   

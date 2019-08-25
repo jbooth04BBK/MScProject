@@ -223,6 +223,7 @@ for(stage.num in 1:length(stage.list)) {
   p <- p + scale_fill_viridis_c(direction = -1, begin = .3, end = 1)
   p <- p + geom_text(aes(label = round(value, 1)), size = 3)
   p <- p + facet_grid(cols = vars(model))
+  p <- p + theme_classic()
   
   print(p)
   
@@ -246,6 +247,7 @@ for(run.num in 1:num.runs) {
   p <- p + scale_fill_viridis_c(direction = -1, begin = .3, end = 1)
   p <- p + geom_text(aes(label = round(value, 1)), size = 2)
   p <- p + facet_grid(cols = vars(variable))
+  p <- p + theme_classic()
   
   print(p)
   
