@@ -2,6 +2,10 @@
 # Load libraries
 library(dplyr)
 library(ggplot2) 
+library(ggmosaic)
+library(grid)
+library(gridExtra)
+library(gtable)
 library(viridis)
 library(rpart)
 library(rpart.plot)
@@ -255,3 +259,60 @@ for(run.num in 1:num.runs) {
   
 }
 
+# Lets have some tables
+# add columns for c001 accuracy and c002 accuracy
+# c001 accuracy = cm_r1_c1/(cm_r1_c1 + cm_r1_c2)
+comb.results$c001_accuracy <- with(comb.results, cm_r1_c1 / (cm_r1_c1 + cm_r1_c2))
+# c002 accuracy = cm_r2_c2/(cm_r2_c1 + cm_r2_c2)
+comb.results$c002_accuracy <- with(comb.results, cm_r2_c2 / (cm_r2_c1 + cm_r2_c2))
+
+# cols = models
+# rows = stage
+# values = mean(accuracy)
+
+summary_accuracy_table <- function(model.lst, stage.list, col.num, title1.txt, title2.txt) {
+  
+  means.matrix = matrix(nrow = length(stage.list), ncol = length(model.list))
+  colnames(means.matrix) <- model.list
+  rownames(means.matrix) <- stage.list
+  
+  for(stage.num in 1:length(stage.list)) {
+    
+    stage.abv <- stage.list[stage.num]
+    
+    for(model.num in 1:length(model.list)) {
+      
+      model.abv <- model.list[model.num]
+      
+      if (col.num == 1){
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$accuracy))
+      } else if (col.num == 2) {
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$c001_accuracy))
+      } else if (col.num == 3) {
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$c002_accuracy))
+      }
+    }
+  
+  }
+  
+  table.grob <- tableGrob(data.frame(means.matrix), cols = c("Decision Tree", "Random Forest", "XGBoost"))
+  title1.grob <- textGrob(title1.txt,just = "centre" )
+  title2.grob <- textGrob(title2.txt,just = "centre" )
+  padding <- unit(5,"mm")
+  
+  table.comb <- gtable(unit(10, c("cm")), unit(c(0.5,0.5,4), "cm"))
+  table.comb <- gtable_add_grob(table.comb, title1.grob, 1, 1)
+  table.comb <- gtable_add_grob(table.comb, title2.grob, 2, 1)
+  table.comb <- gtable_add_grob(table.comb, table.grob, 3, 1)
+
+  return(table.comb)
+  
+}
+ 
+table_oa <- summary_accuracy_table(model.lst, stage.list, 1, "Mean Predictive Accuracy - COD Combined","by Model by Stage")
+table_c1 <- summary_accuracy_table(model.lst, stage.list, 2, "Mean Predictive Accuracy - COD Not Determined","by Model by Stage")
+table_c2 <- summary_accuracy_table(model.lst, stage.list, 3, "Mean Predictive Accuracy - COD Determined","by Model by Stage")
+
+table <- grid.arrange(table_oa, table_c1, table_c2, ncol = 1)
+
+ggsave(paste0(results.sub.dir, "/", "accuracy_table",".png"),table)
