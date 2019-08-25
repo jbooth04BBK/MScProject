@@ -15,10 +15,13 @@ library(ggmosaic)
 library(gridExtra)
 library(viridis)
 
+# Clear work space
+rm(list = ls())
+
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-study.prefix <- "run_12_"
-sub.dir <- paste0(study.prefix,"20190819_2005")
+study.prefix <- "run_14_"
+sub.dir <- paste0(study.prefix,"20190825_0941")
 results.sub.dir <- file.path(results.dir, sub.dir)
 
 # rdv_demo_selection_02
@@ -34,6 +37,7 @@ p <- p + geom_bar()
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Sex", labels = c("Female", "Male", "Unknown")) 
 p <- p + scale_x_discrete(labels = c('No','Yes','Unknown', 'N/A'))
 p <- p + xlab("Cause of Death - Determined")
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Cause of Death Determined split by Sex")
 p <- p + theme_classic()
 
@@ -71,6 +75,7 @@ p2 <- p
 p <- ggplot(RDVData, aes(x = number_of_attributes, fill = cod2_summ)) 
 p <- p + geom_histogram(bins = 50)
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Cause of Death\nDetermined", labels = c("No", "Yes", "Unknown", "N/A"))
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Number of Attributes")
 p <- p + theme_classic()
 
@@ -81,6 +86,7 @@ p3 <- p
 p <- ggplot(RDVData, aes(x = year, fill = cod2_summ)) 
 p <- p + geom_histogram(bins = 50)
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Cause of Death\nDetermined", labels = c("No", "Yes", "Unknown", "N/A"))
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Year")
 p <- p + theme_classic()
 
@@ -105,6 +111,7 @@ p <- p + geom_bar()
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Include in Study", labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
 p <- p + scale_x_discrete(labels = c("Include", "Exc - COD", "Exc - Age", "Exc - Measure"))
 p <- p + xlab("Include in Study")
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Include in Study - Breakdown")
 p <- p + theme_classic()
 
@@ -124,6 +131,7 @@ p <- p + geom_bar()
 p <- p + scale_x_discrete(labels = c("Include", "Exclude"))
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Sex", labels = c("Female", "Male", "Unknown"))
 p <- p + xlab("Include in Study")
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Include in Study split by Sex")
 p <- p + theme_classic()
 
@@ -161,6 +169,7 @@ p <- ggplot(RDVData, aes(x = number_of_attributes, fill = summary_iis))
 p <- p + geom_histogram(bins = 50)
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Include\nin Study", labels = c("Include", "Exclude"))
 p <- p + xlab("Number of Attributes")
+p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Number of Attributes by Include in study")
 p <- p + theme_classic()
 

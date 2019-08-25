@@ -134,3 +134,43 @@ mergeCSV <- function(df.name, model.abv, file.text, results.sub.dir, max.run = 1
   assign(df.name, df, envir = .GlobalEnv)
   
 }
+
+summary_accuracy_table <- function(model.lst, stage.list, col.num, title1.txt, title2.txt) {
+  
+  means.matrix = matrix(nrow = length(stage.list), ncol = length(model.list))
+  colnames(means.matrix) <- model.list
+  rownames(means.matrix) <- stage.list
+  
+  for(stage.num in 1:length(stage.list)) {
+    
+    stage.abv <- stage.list[stage.num]
+    
+    for(model.num in 1:length(model.list)) {
+      
+      model.abv <- model.list[model.num]
+      
+      if (col.num == 1){
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$accuracy))
+      } else if (col.num == 2) {
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$c001_accuracy))
+      } else if (col.num == 3) {
+        means.matrix[stage.num,model.num] <- sprintf("%.2f %%",100 *mean(subset(comb.results, model == model.abv & stage == stage.abv)$c002_accuracy))
+      }
+    }
+    
+  }
+  
+  table.grob <- tableGrob(data.frame(means.matrix), cols = c("Decision Tree", "Random Forest", "XGBoost"))
+  title1.grob <- textGrob(title1.txt,just = "centre" )
+  title2.grob <- textGrob(title2.txt,just = "centre" )
+  padding <- unit(5,"mm")
+  
+  table.comb <- gtable(unit(10, c("cm")), unit(c(0.5,0.5,4), "cm"))
+  table.comb <- gtable_add_grob(table.comb, title1.grob, 1, 1)
+  table.comb <- gtable_add_grob(table.comb, title2.grob, 2, 1)
+  table.comb <- gtable_add_grob(table.comb, table.grob, 3, 1)
+  
+  return(table.comb)
+  
+}
+
