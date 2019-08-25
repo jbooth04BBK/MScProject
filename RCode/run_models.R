@@ -2,6 +2,7 @@
 # Load libraries
 library(dplyr)
 library(ggplot2) 
+library(viridis)
 library(rpart)
 library(rpart.plot)
 library(caret)
@@ -27,7 +28,7 @@ source("GBoost_study.R")
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 
-study.prefix <- "run_12_"
+study.prefix <- "run_14_"
 
 now <- Sys.time()
 sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
@@ -147,13 +148,13 @@ comb.results$run <- factor(comb.results$run)
 write.csv(comb.results, file = paste0(results.sub.dir, "/comb_results_matrix_all", ".csv"),row.names=FALSE, na="")
 
 # Visualization
-p <- ggplot(comb.results, aes(x = run, y = accuracy, group = stage)) 
-p <- p + geom_line(aes(color = stage), size=1)
-p <- p + ylim(0.55, 0.9)
-p <- p + ggtitle(paste0("Change of Accuracy by Run, by Model "))
+p <- ggplot(comb.results, aes(x = stage, y = accuracy, fill = stage)) 
+p <- p + geom_boxplot()
+p <- p + geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.5, binwidth = .01) # 
+p <- p + scale_fill_viridis_d(direction = -1, begin = 0.3, end = 1, option = "C")
+p <- p + ggtitle(paste0("Change of Accuracy by Stage, by Model "))
 p <- p + facet_grid(rows = vars(model))
-# p <- p + scale_color_manual(values = c("darkred", "steelblue"))
-
+p <- p + theme_classic()
 print(p)
 
 ggsave(paste0(results.sub.dir, "/", "comb_accuracy_run_model",".png"))
@@ -164,9 +165,11 @@ ggsave(paste0(results.sub.dir, "/", "comb_accuracy_run_model",".png"))
 # Visualization
 p <- ggplot(comb.results, aes(x = stage, y = accuracy, group = model)) 
 p <- p + geom_line(aes(color = model), size=1)
+p <- p + scale_colour_viridis_d(direction = -1, begin = 0, end = .8, option = "C")
 p <- p + ylim(0.55, 0.9)
 p <- p + ggtitle(paste0("Change of Accuracy by Model, by Run "))
 p <- p + facet_grid(rows = vars(run))
+p <- p + theme_classic()
 
 print(p)
 
@@ -202,6 +205,8 @@ write.csv(comb.results, file = paste0(results.sub.dir, "/comb_feature_importance
 
 comb.results$feature <- with(comb.results, reorder(feature, ext + int1 + int2 + int3))
 
+# stage.num = 1
+
 for(stage.num in 1:length(stage.list)) {
   
   stage <- stage.list[stage.num]
@@ -214,7 +219,8 @@ for(stage.num in 1:length(stage.list)) {
   
   p <- ggplot(data.m.ss, aes(x=run, y=feature)) 
   p <- p + ggtitle(plot.title)
-  p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_tile(aes(fill = value)) 
+  p <- p + scale_fill_viridis_c(direction = -1, begin = .3, end = 1)
   p <- p + geom_text(aes(label = round(value, 1)), size = 3)
   p <- p + facet_grid(cols = vars(model))
   
@@ -236,7 +242,8 @@ for(run.num in 1:num.runs) {
   
   p <- ggplot(data.m.ss, aes(x=model, y=feature)) 
   p <- p + ggtitle(plot.title)
-  p <- p + geom_tile(aes(fill = value)) + scale_fill_gradient(low = "green", high = "red")
+  p <- p + geom_tile(aes(fill = value))
+  p <- p + scale_fill_viridis_c(direction = -1, begin = .3, end = 1)
   p <- p + geom_text(aes(label = round(value, 1)), size = 2)
   p <- p + facet_grid(cols = vars(variable))
   
