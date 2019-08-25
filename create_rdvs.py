@@ -898,12 +898,12 @@ def main():
 
     # create_rdv_measurements(rep_cnxn, rep_crsr)
 
-    create_rdv_study(rep_cnxn, rep_crsr, "ext")
-    create_rdv_study(rep_cnxn, rep_crsr, "int1")
+    # create_rdv_study(rep_cnxn, rep_crsr, "ext")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int1")
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
-    create_rdv_study(rep_cnxn, rep_crsr, "int2")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int2")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
-    create_rdv_study(rep_cnxn, rep_crsr, "int3")
+    # create_rdv_study(rep_cnxn, rep_crsr, "int3")
     # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
 
     rep_cnxn.close()

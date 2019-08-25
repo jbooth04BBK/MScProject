@@ -343,15 +343,15 @@ def main():
 
     measures_ext = ["body_weight","head_circumference","crown_rump_length","body_length","foot_length"]
 
-    modify_csv(destination_folder, 'rdv_study_ext', lr_results, measures_ext)
+    # modify_csv(destination_folder, 'rdv_study_ext', lr_results, measures_ext)
 
-    modify_csv(destination_folder, 'rdv_study_int1', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int1', lr_results, measures_all)
 
     # modify_csv(destination_folder, 'rdv_study_int1_x', lr_results, measures_all)
 
-    modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
 
-    modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
+    # modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
 
     # modify_csv(destination_folder, 'rdv_study_int2_s', lr_results, measures_all)
 
