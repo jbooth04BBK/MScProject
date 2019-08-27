@@ -10,6 +10,7 @@
 # https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
 #
 
+library(dplyr)
 library(ggplot2) 
 library(ggmosaic)
 library(gridExtra)
@@ -68,6 +69,14 @@ p <- ggplot(data = RDVData) +
         axis.ticks.y = element_blank()
   )
 
+# Add number labels to plot
+p <- p +
+  geom_label(data = ggplot_build(p)$data %>% as.data.frame() %>% filter(.wt > 0),
+             aes(x = (xmin + xmax)/2,
+                 y = (ymin + ymax)/2,
+                 label = .wt),
+             size = 2)
+
 print(p)
 p2 <- p
 
@@ -75,6 +84,7 @@ p2 <- p
 p <- ggplot(RDVData, aes(x = number_of_attributes, fill = cod2_summ)) 
 p <- p + geom_histogram(bins = 50)
 p <- p + scale_fill_viridis(discrete = TRUE, name = "Cause of Death\nDetermined", labels = c("No", "Yes", "Unknown", "N/A"))
+p <- p + xlab("Number of Attributes")
 p <- p + ylab("Number of Cases")
 p <- p + ggtitle("Number of Attributes")
 p <- p + theme_classic()
@@ -161,6 +171,14 @@ p <- ggplot(data = RDVData) +
         axis.ticks.y = element_blank()
   )
 
+# Add number labels to plot
+p <- p +
+  geom_label(data = ggplot_build(p)$data %>% as.data.frame() %>% filter(.wt > 0),
+             aes(x = (xmin + xmax)/2,
+                 y = (ymin + ymax)/2,
+                 label = .wt),
+             size = 3)
+
 print(p)
 p3 <- p
 
@@ -174,7 +192,6 @@ p <- p + ggtitle("Number of Attributes by Include in study")
 p <- p + theme_classic()
 
 print(p)
-
 p4 <- p
 
 g <- grid.arrange(p1, p2, p3, p4, nrow = 2)
