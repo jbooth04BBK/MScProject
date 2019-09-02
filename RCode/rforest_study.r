@@ -272,7 +272,7 @@ RunRFModel <- function(run.seed,
       rm.col = rm.col + 1
       
       best.ntree <- 550
-
+      
       results.matrix[stage.num,rm.col] = best.ntree
       rm.col = rm.col + 1
       results.matrix[stage.num,rm.col] = 0
