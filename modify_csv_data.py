@@ -18,32 +18,32 @@ def get_lrmodel_results(destination_folder, measures):
     # Read the data
     data = pd.read_csv(destination_folder + orig_file_name + file_ext)
 
-    plot_maxcols = 4
-    plot_maxrows = int(len(measures)/plot_maxcols)
-    if plot_maxrows%2 != 0:
-        plot_maxrows += 1
+    for age in ['NN', 'IN']:
 
-    fig, axs = plt.subplots(plot_maxrows, plot_maxcols, figsize=(10, 10))
+        plot_maxcols = 4
+        plot_maxrows = int(len(measures)/plot_maxcols)
+        if plot_maxrows%2 != 0:
+            plot_maxrows += 1
 
-    plot_index = 1
-    plot_row = 0
-    plot_col = 0
+        fig, axs = plt.subplots(plot_maxrows, plot_maxcols, figsize=(10, 10))
 
-    for measure in measures:
+        plot_index = 0
+        plot_row = 0
+        plot_col = 0
 
-        for sex in ['M','F','U']:
+        for measure in measures:
 
-            if sex == 'M':
-                point_colour = 'blue'
-                line_colour = 'yellow'
-            elif sex == 'F':
-                point_colour = 'red'
-                line_colour = 'green'
-            else:
-                point_colour = 'black'
-                line_colour = 'white'
+            for sex in ['M','F','U']:
 
-            for age in ['NN', 'IN']:
+                if sex == 'M':
+                    point_colour = 'blue'
+                    line_colour = 'yellow'
+                elif sex == 'F':
+                    point_colour = 'red'
+                    line_colour = 'green'
+                else:
+                    point_colour = 'black'
+                    line_colour = 'white'
 
                 # clean_data = data.dropna(how='any')
                 clean_data = pd.concat([data['age_in_days'], data['sex'], data[measure]], axis=1, keys=['age_in_days', 'sex', measure])
@@ -78,24 +78,24 @@ def get_lrmodel_results(destination_folder, measures):
 
                     lr_results[measure + "_" + sex + "_" + age] = (len(clean_data), regressor.intercept_[0], regressor.coef_[0][0])
 
-        axs[plot_row, plot_col].set_title(str(measure))
+            axs[plot_row, plot_col].set_title(str(measure))
 
-        if str(measure) in ["heart_weight", "pancreas_weight", "thymus_weight", "spleen_weight", "comb_kidney_weight"]:
-            axs[plot_row, plot_col].set_ylim(0,200)
-        elif str(measure) in ["comb_adrenal_weight", "thyroid_weight"]:
-            axs[plot_row, plot_col].set_ylim(0,50)
+            if str(measure) in ["heart_weight", "pancreas_weight", "thymus_weight", "spleen_weight", "comb_kidney_weight"]:
+                axs[plot_row, plot_col].set_ylim(0,200)
+            elif str(measure) in ["comb_adrenal_weight", "thyroid_weight"]:
+                axs[plot_row, plot_col].set_ylim(0,50)
 
-        plot_index += 1
+            plot_index += 1
 
-        if plot_index % plot_maxcols == 0:
-            plot_row += 1
-            plot_col = 0
-        else:
-            plot_col += 1
+            if plot_index % plot_maxcols == 0:
+                plot_row += 1
+                plot_col = 0
+            else:
+                plot_col += 1
 
-    plt.suptitle('Visualisation of Normal Measurement Predictions')
-    plt.tight_layout()
-    plt.show()
+        # plt.suptitle('Visualisation of Normal Measurement Predictions')
+        plt.tight_layout()
+        plt.show()
 
     return lr_results
 
