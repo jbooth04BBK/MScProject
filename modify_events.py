@@ -651,7 +651,7 @@ def exclude_event_attributes(cnxn, crsr):
             SQLstring += "FROM "
             SQLstring += "       rdv_measurements AS RDV "
             SQLstring += "WHERE "
-            SQLstring += "        (RDV.event_id = " + Create_HAS_Tables.return_null_number(EventAttributeRow.event_id) + ") "
+            SQLstring += "        (RDV.event_id = " + Create_HAS_Tables.return_null_number(EventRow.event_id) + ") "
             SQLstring += "     AND ( "
             SQLstring += "        (RDV.body_weight > 100000) "
             SQLstring += "     OR (RDV.age_category = 'C006' AND  RDV.body_weight < 100) "
