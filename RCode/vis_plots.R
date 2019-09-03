@@ -15,14 +15,17 @@ library(ggplot2)
 library(ggmosaic)
 library(gridExtra)
 library(viridis)
+library(reshape2)
 
 # Clear work space
 rm(list = ls())
 
+source("study_functions.R")
+
 source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
-study.prefix <- "run_14_"
-sub.dir <- paste0(study.prefix,"20190825_0941")
+study.prefix <- "run_15_"
+sub.dir <- paste0(study.prefix,"20190903_1016")
 results.sub.dir <- file.path(results.dir, sub.dir)
 
 # rdv_demo_selection_02
@@ -197,4 +200,85 @@ p4 <- p
 g <- grid.arrange(p1, p2, p3, p4, nrow = 2)
 
 ggsave(paste0(results.sub.dir, "/", "inc_data_vis_grid",".png"),g)
+
+# Plot missing data
+# Numeric columns
+# load int3 data set as has all data not adjusted.
+
+RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3",  ".csv"), header=TRUE, sep=",")
+
+# Gives a list of columns with NA's creater than 0
+na <- sapply(RDVData, function(x) sum(is.na(x)))
+# Removes columns with no NAs i.e. categorical data
+RDVData.na <- RDVData[na > 0]
+
+# Remove rows where gestational_age = NA
+# RDVData.na <- RDVData.na[!is.na(RDVData.na$gestation_at_delivery_in_days),]
+# Remove rows where gestational_age = NA
+# RDVData.na <- RDVData.na[!is.na(RDVData.na$thyroid_weight),]
+
+# Creates a data set with just one row, number of NAs
+RDVData.na <- data.frame(lapply(RDVData.na, function(x) sum(is.na(x))))
+# Pivots table to columns becomes row
+RDVData.na <- melt(RDVData.na)
+# sort by value
+str(RDVData.na)
+
+
+# Visualization NAs
+p <- ggplot(RDVData.na, aes(x = reorder(variable,-value), y = value, fill = value)) 
+p <- p + geom_bar(stat="identity")
+p <- p + scale_fill_viridis(direction = -1) 
+p <- p + xlab("Measurements")
+p <- p + ylab("Number of NAs")
+p <- p + ggtitle("Number of NAs by Measurement")
+p <- p + theme_classic()
+p <- p + theme(axis.text.x=element_text(angle=45,hjust=1))
+
+print(p)
+
+ggsave(paste0(results.sub.dir, "/", "na_measurements",".png"),p)
+
+# Balanced Data
+
+RDVData <- read.csv(file=paste0(source.dir, "\\rdv_study_int3",  ".csv"), header=TRUE, sep=",")
+
+# Gives a list of columns with NA's creater than 0
+na <- sapply(RDVData, function(x) sum(is.na(x)))
+# Removes columns with NAs > 0 
+RDVData.cat <- RDVData[na == 0]
+
+RDVData.cat <- RDVData.cat %>%
+  select(-c(event_id, event_start_date, age_category, case_id, include_in_study))
+
+summary(RDVData.cat)  
+
+# column.list <- c("season", "neglect_ynid", "nutrition_nutn_id", "dysmorphic_features_ynid", "jaundice_ynid")
+# column.list <- c("season", "cod2_summ", "nutrition_nutn_id")
+column.list <- colnames(RDVData.cat)
+
+p.list <- list()
+
+for(column.num in 1:length(column.list)) {
+  
+  column_name <- column.list[column.num]
+  
+  p <- ggplot(RDVData.cat, aes_string(x = column_name, fill = "..count.."))
+  p <- p + geom_bar(stat = "count")
+  p <- p + scale_fill_viridis(limits=c(1, 100), oob = scales::squish, "count",option = "A") 
+  p <- p + ggtitle(column_name)
+  p <- p + theme_classic()
+  p <- p + theme(axis.text.x=element_text(angle=45,hjust=1),
+                 axis.text.y = element_blank(),
+                 axis.title.x = element_blank(),
+                 axis.title.y = element_blank(),
+                 legend.position = "none",
+                 plot.title = element_text(size = 9, face = "bold")
+                )
+
+    p.list[[column.num]] <- p
+
+}
+
+do.call(grid.arrange,p.list)
 
