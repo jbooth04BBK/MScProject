@@ -1,0 +1,16 @@
+n= 1340 
+
+node), split, n, loss, yval, (yprob)
+      * denotes terminal node
+
+ 1) root 1340 622 0 (0.5358209 0.4641791)  
+   2) respiratory_histo_sy_hi_id_c003< 0.5 891 290 0 (0.6745230 0.3254770)  
+     4) cardiovascular_histo_sy_hi_id_c003< 0.5 808 220 0 (0.7277228 0.2722772)  
+       8) central_nervous_histo_sy_hi_id_c001>=0.5 513  79 0 (0.8460039 0.1539961) *
+       9) central_nervous_histo_sy_hi_id_c001< 0.5 295 141 0 (0.5220339 0.4779661)  
+        18) age_in_days>=14.5 225  87 0 (0.6133333 0.3866667)  
+          36) age_in_days< 278 171  51 0 (0.7017544 0.2982456) *
+          37) age_in_days>=278 54  18 1 (0.3333333 0.6666667) *
+        19) age_in_days< 14.5 70  16 1 (0.2285714 0.7714286) *
+     5) cardiovascular_histo_sy_hi_id_c003>=0.5 83  13 1 (0.1566265 0.8433735) *
+   3) respiratory_histo_sy_hi_id_c003>=0.5 449 117 1 (0.2605791 0.7394209) *

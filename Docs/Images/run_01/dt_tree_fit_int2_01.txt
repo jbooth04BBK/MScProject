@@ -1,0 +1,20 @@
+n= 1340 
+
+node), split, n, loss, yval, (yprob)
+      * denotes terminal node
+
+  1) root 1340 606 0 (0.5477612 0.4522388)  
+    2) age_in_days>=12.5 1091 414 0 (0.6205316 0.3794684)  
+      4) respiratory_macro_sy_fi_id_c003< 0.5 986 329 0 (0.6663286 0.3336714)  
+        8) heart_weight< 0.54215 920 277 0 (0.6989130 0.3010870)  
+         16) central_nervous_macro_sy_fi_id_c003< 0.5 837 224 0 (0.7323775 0.2676225)  
+           32) cardiovascular_macro_sy_fi_id_c003< 0.5 807 200 0 (0.7521685 0.2478315)  
+             64) age_in_days< 249.5 667 137 0 (0.7946027 0.2053973) *
+             65) age_in_days>=249.5 140  63 0 (0.5500000 0.4500000)  
+              130) comb_lung_weight< 0.21165 92  30 0 (0.6739130 0.3260870) *
+              131) comb_lung_weight>=0.21165 48  15 1 (0.3125000 0.6875000) *
+           33) cardiovascular_macro_sy_fi_id_c003>=0.5 30   6 1 (0.2000000 0.8000000) *
+         17) central_nervous_macro_sy_fi_id_c003>=0.5 83  30 1 (0.3614458 0.6385542) *
+        9) heart_weight>=0.54215 66  14 1 (0.2121212 0.7878788) *
+      5) respiratory_macro_sy_fi_id_c003>=0.5 105  20 1 (0.1904762 0.8095238) *
+    3) age_in_days< 12.5 249  57 1 (0.2289157 0.7710843) *

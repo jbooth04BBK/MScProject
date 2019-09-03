@@ -25,7 +25,7 @@
 # source.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/DataExtraction/CSVs"
 # results.dir <- "I:/DRE/Projects/Research/0004-Post mortem-AccessDB/Results"
 # 
-# study.prefix <- "run_12_"
+# study.prefix <- "run_15_"
 # 
 # now <- Sys.time()
 # sub.dir <- paste0(study.prefix,format(now, "%Y%m%d_%H%M"))
@@ -53,22 +53,38 @@
 # 
 # now <- Sys.time()
 # run.seed <- as.integer((second(now) - as.integer(second(now))) * 1000)
+# 
+# stage = "ext"
+# clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+# ext.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+# 
+# stage = "int1"
+# clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+# int1.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+# 
+# stage = "int2"
+# clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+# int2.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
+# 
+# stage = "int3"
+# clean_RDVData <- return_clean_rdvdata(source.dir, stage, rdv.type)
+# int3.train.index = sample(nrow(clean_RDVData),floor(0.80 * nrow(clean_RDVData)))
 
 #--- End initialise function
 
-RunDTModel <- function(run.seed, 
-                       rdv.type, 
-                       importance.min, 
-                       source.dir, 
-                       results.sub.dir, 
-                       file.suffix, 
+RunDTModel <- function(run.seed,
+                       rdv.type,
+                       importance.min,
+                       source.dir,
+                       results.sub.dir,
+                       file.suffix,
                        stage.list,
                        ext.train.index,
                        int1.train.index,
                        int2.train.index,
                        int3.train.index
                        ) {
-  
+
   set.seed(run.seed)
   
   model.name = "Decision Tree"
@@ -259,14 +275,37 @@ RunDTModel <- function(run.seed,
     ## Plot Tree
     #############################
     
+    # dev.new(width=10, height=10, unit="in")
     rpart.plot(tune_fit)
     title(main=paste0("Tree - Model: ",model.name,", Stage: ",stage), col.main="red", font.main=4)
     
     # These results need storing - not quite sure how!
     # tune_fit
-    
-    dev.copy(png,filename=paste0(results.sub.dir, "/", model.abv, "_tree_",stage, file.suffix,".png"));
+    # width=1000, height=750, unit="px"
+    dev.copy(png,filename=paste0(results.sub.dir, "/", model.abv, "_tree_",stage, file.suffix,".png"),width=900, height=540, unit="px"); 
     dev.off ();
+    
+    # Split criteria
+    # rows in this node
+    # Misclassified
+    # Predicted Class
+    # % of rows in predicted class for this node.
+    
+    sink(paste0(results.sub.dir, "/", model.abv, "_tree_fit_",stage, file.suffix,".txt"))
+    print(tune_fit)
+    sink()
+    
+    sink(paste0(results.sub.dir, "/", model.abv, "_tree_cp_",stage, file.suffix,".txt"))
+    printcp(tune_fit)
+    sink()
+
+    # plotcp(tune_fit)
+    
+    # CP Table
+    # Variable Importance
+    # Description of the Node and Split (including # going left or right and even surrogate splits.
+                                       
+    # summary(tune_fit)
     
     #############################
     ## Store confusion matrix

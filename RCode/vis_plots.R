@@ -265,7 +265,7 @@ for(column.num in 1:length(column.list)) {
   
   p <- ggplot(RDVData.cat, aes_string(x = column_name, fill = "..count.."))
   p <- p + geom_bar(stat = "count")
-  p <- p + scale_fill_viridis(limits=c(1, 100), oob = scales::squish, "count",option = "A") 
+  p <- p + scale_fill_viridis(limits=c(1, 500), oob = scales::squish, "count",option = "A") 
   p <- p + ggtitle(column_name)
   p <- p + theme_classic()
   p <- p + theme(axis.text.x=element_text(angle=45,hjust=1),
@@ -280,5 +280,9 @@ for(column.num in 1:length(column.list)) {
 
 }
 
-do.call(grid.arrange,p.list)
+g <- do.call(grid.arrange,p.list)
+
+# g <- grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+ggsave(paste0(results.sub.dir, "/", "study_categoric_values",".png"),g)
 
