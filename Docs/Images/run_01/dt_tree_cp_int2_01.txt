@@ -4,19 +4,19 @@ rpart(formula = cod2_summ ~ ., data = data_train, method = "class",
     control = control)
 
 Variables actually used in tree construction:
-[1] age_in_days                         central_nervous_macro_sy_fi_id_c003
-[3] head_circumference                  heart_weight                       
-[5] respiratory_macro_sy_fi_id_c003     thymus_weight                      
+[1] age_in_days                         cardiovascular_macro_sy_fi_id_c003 
+[3] central_nervous_macro_sy_fi_id_c003 comb_lung_weight                   
+[5] respiratory_macro_sy_fi_id_c003    
 
-Root node error: 625/1340 = 0.46642
+Root node error: 624/1340 = 0.46567
 
 n= 1340 
 
-      CP nsplit rel error xerror     xstd
-1 0.2352      0    1.0000 1.0000 0.029219
-2 0.1120      1    0.7648 0.7760 0.028146
-3 0.0576      2    0.6528 0.6688 0.027134
-4 0.0400      3    0.5952 0.6144 0.026483
-5 0.0272      4    0.5552 0.5712 0.025893
-6 0.0112      6    0.5008 0.5520 0.025609
-7 0.0100      7    0.4896 0.5584 0.025705
+        CP nsplit rel error  xerror     xstd
+1 0.243590      0   1.00000 1.00000 0.029263
+2 0.107372      1   0.75641 0.75641 0.028022
+3 0.078526      2   0.64904 0.66987 0.027178
+4 0.056090      3   0.57051 0.59936 0.026314
+5 0.038462      4   0.51442 0.54487 0.025527
+6 0.014423      5   0.47596 0.51603 0.025065
+7 0.010000      7   0.44712 0.49359 0.024682
