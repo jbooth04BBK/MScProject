@@ -288,13 +288,13 @@ file.text <- "comb_feature_importance_matrix_all"
 
 file.name <- paste0(results.sub.dir, "/", file.text, ".csv")
 
-model.run.results <- read.csv(file = file.name, header=TRUE, sep=",")
+model.stage.results <- read.csv(file = file.name, header=TRUE, sep=",")
 
 # Only want XGB values
-model.run.results <- subset(model.run.results, model == model.abv)
+model.stage.results <- subset(model.run.results, model == model.abv)
 
 # remove all zero values
-model.run.results <- subset(model.run.results, ext != 0.00 | int1 != 0.00 | int2 != 0.00 | int3 != 0.00)
+model.stage.results <- subset(model.run.results, ext != 0.00 | int1 != 0.00 | int2 != 0.00 | int3 != 0.00)
 
 for(stage.num in 1:length(stage.list)) {
   
