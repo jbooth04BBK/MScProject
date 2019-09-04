@@ -1,0 +1,22 @@
+
+Classification tree:
+rpart(formula = cod2_summ ~ ., data = data_train, method = "class", 
+    control = control)
+
+Variables actually used in tree construction:
+[1] age_in_days                         central_nervous_macro_sy_fi_id_c003
+[3] head_circumference                  heart_weight                       
+[5] respiratory_macro_sy_fi_id_c003     thymus_weight                      
+
+Root node error: 625/1340 = 0.46642
+
+n= 1340 
+
+      CP nsplit rel error xerror     xstd
+1 0.2352      0    1.0000 1.0000 0.029219
+2 0.1120      1    0.7648 0.7760 0.028146
+3 0.0576      2    0.6528 0.6688 0.027134
+4 0.0400      3    0.5952 0.6144 0.026483
+5 0.0272      4    0.5552 0.5712 0.025893
+6 0.0112      6    0.5008 0.5520 0.025609
+7 0.0100      7    0.4896 0.5584 0.025705

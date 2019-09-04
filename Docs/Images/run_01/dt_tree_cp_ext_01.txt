@@ -1,0 +1,20 @@
+
+Classification tree:
+rpart(formula = cod2_summ ~ ., data = data_train, method = "class", 
+    control = control)
+
+Variables actually used in tree construction:
+[1] age_in_days                   body_weight                   dysmorphic_features_ynid_c002
+[4] oedema_ynid_c001              pallor_ynid_c002             
+
+Root node error: 792/1768 = 0.44796
+
+n= 1768 
+
+        CP nsplit rel error  xerror     xstd
+1 0.118056      0   1.00000 1.00000 0.026401
+2 0.047980      2   0.76389 0.78409 0.025343
+3 0.027778      3   0.71591 0.73864 0.024981
+4 0.013889      4   0.68813 0.73485 0.024948
+5 0.010101      5   0.67424 0.71843 0.024803
+6 0.010000      6   0.66414 0.71843 0.024803
