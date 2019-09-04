@@ -278,3 +278,54 @@ for(run.num in 1:num.runs) {
   
 }
 
+####################################
+# Get Feature importance for results
+####################################
+
+model.abv = "xgb"
+model.name = "XGBoost"
+file.text <- "comb_feature_importance_matrix_all"
+
+file.name <- paste0(results.sub.dir, "/", file.text, ".csv")
+
+model.run.results <- read.csv(file = file.name, header=TRUE, sep=",")
+
+# Only want XGB values
+model.run.results <- subset(model.run.results, model == model.abv)
+
+# remove all zero values
+model.run.results <- subset(model.run.results, ext != 0.00 | int1 != 0.00 | int2 != 0.00 | int3 != 0.00)
+
+for(stage.num in 1:length(stage.list)) {
+  
+  stage <- stage.list[stage.num]
+  
+  # model.stage.mean <- aggregate(model.stage.results[, 4], list(model.stage.results$model,model.stage.results$feature), mean)
+  model.stage.mean <- aggregate(
+    formula = model.stage.results[,(3 + stage.num)] ~ feature,
+    FUN = mean,
+    data = model.stage.results
+  )
+  
+  colnames(model.stage.mean) <- c("feature", "value")
+  
+  model.stage.mean <- subset(model.stage.mean, value >= importance.min)
+  
+  # Visualization NAs
+  p <- ggplot(model.stage.mean, aes(x = reorder(feature,value), y = value, fill = value)) 
+  p <- p + geom_bar(stat="identity", width=0.5)
+  p <- p + scale_fill_viridis(direction = -1) 
+  p <- p + xlab("Features")
+  p <- p + ylab("Relative Importance")
+  p <- p + ggtitle(paste0("Relative Feature Importance, stage: ",stage))
+  p <- p + coord_flip()
+  p <- p + theme_classic()
+  
+  print(p)
+  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_feature_importance_mean_", stage, ".png"))
+  
+}
+
+
+

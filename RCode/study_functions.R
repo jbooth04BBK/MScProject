@@ -174,3 +174,76 @@ summary_accuracy_table <- function(model.lst, stage.list, col.num, title1.txt, t
   
 }
 
+plot_confusion_matrix_plot <- function(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix) {
+  
+  file.name <- paste0(results.sub.dir, "/", model.abv, file.text, file.suffix, ".csv")
+  
+  model.run.results <- read.csv(file = paste0(results.sub.dir, "/", model.abv, file.text, file.suffix, ".csv"), header=TRUE, sep=",")
+  
+  # Change run into a factor
+  model.run.results$run <- factor(model.run.results$run)
+  
+  # Lets have some tables
+  # add columns for c001 accuracy and c002 accuracy
+  # c001 accuracy = cm_r1_c1/(cm_r1_c1 + cm_r1_c2)
+  model.run.results$c001_accuracy <- with(model.run.results, cm_r1_c1 / (cm_r1_c1 + cm_r1_c2))
+  # c002 accuracy = cm_r2_c2/(cm_r2_c1 + cm_r2_c2)
+  model.run.results$c002_accuracy <- with(model.run.results, cm_r2_c2 / (cm_r2_c1 + cm_r2_c2))
+  
+  accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$accuracy*100)),"%")
+  c001.accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$c001_accuracy*100)),"%")
+  c002.accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$c002_accuracy*100)),"%")
+  
+  # cols = models
+  # rows = stage
+  # values = mean(accuracy)
+  
+  output.matrix = matrix(nrow = 4, ncol = 4)
+  colnames(output.matrix) <- c("Actual","Predicted","Value","Label")
+  #rownames(output.matrix) <- c("C001","C002")
+  
+  output.matrix[1,1] <- "C001"
+  output.matrix[1,2] <- "C001"
+  output.matrix[1,3] <- subset(model.run.results, stage == stage.abv)$cm_r1_c1
+  output.matrix[1,4] <- paste0(output.matrix[1,3]," (",c001.accuracy.string,")")
+  output.matrix[2,1] <- "C001"
+  output.matrix[2,2] <- "C002"
+  output.matrix[2,3] <- subset(model.run.results, stage == stage.abv)$cm_r1_c2
+  output.matrix[2,4] <- output.matrix[2,3]
+  output.matrix[3,1] <- "C002"
+  output.matrix[3,2] <- "C001"
+  output.matrix[3,3] <- subset(model.run.results, stage == stage.abv)$cm_r2_c1
+  output.matrix[3,4] <- output.matrix[3,3]
+  output.matrix[4,1] <- "C002"
+  output.matrix[4,2] <- "C002"
+  output.matrix[4,3] <- subset(model.run.results, stage == stage.abv)$cm_r2_c2
+  output.matrix[4,4] <- paste0(output.matrix[4,3]," (",c002.accuracy.string,")")
+  
+  output.df <- data.frame(output.matrix)
+  output.df$Value <- strtoi(output.df$Value)
+  
+  p <- ggplot(output.df, aes(x=Predicted, y=Actual)) 
+  p <- p + geom_tile(aes(fill = Value))
+  p <- p + scale_fill_viridis_c(direction = -1)
+  # p <- p + geom_text(aes(label = round(Value, 1)))
+  p <- p + xlab("Predicted")
+  p <- p + ggtitle(label = paste0("Confusion Matrix - Model: ", model.name, ", Stage: ",stage.abv),
+                   subtitle = paste0("Accuracy = ",accuracy.string))
+  p <- p + theme_classic()
+  p <- p + geom_label(aes(label = Label),size = 5)
+  p <- p + theme(plot.subtitle = element_text(color = "red", size = 14, face = "bold"),
+                 legend.position = "none")
+  
+  return(p)
+  
+  
+}
+save_confusion_matrix_plot <- function(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix) {
+  
+  p <- plot_confusion_matrix_plot(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix)
+    
+  print(p)
+  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_confusion_matrix_",stage.abv, file.suffix,".png"))
+  
+}

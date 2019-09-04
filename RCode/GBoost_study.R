@@ -286,6 +286,25 @@ RunXGBModel <- function(run.seed,
   
   write.csv(results.matrix, file = paste0(results.sub.dir, "/", model.abv, "_results_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
   write.csv(fimp.matrix, file = paste0(results.sub.dir, "/", model.abv, "_feature_importance_matrix", file.suffix, ".csv"),row.names=FALSE, na="")
+
+    file.text <- "_results_matrix"
+  file.suffix <- sprintf("_%02d", run.num)
+  
+  p.list <- list()
+  
+  for(stage.num in 1:length(stage.list)) {
+    
+    stage.abv <- stage.list[stage.num]
+    
+    save_confusion_matrix_plot(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix)
+    
+    p.list[[stage.num]] <- plot_confusion_matrix_plot(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix)
+
+  }      
+  
+  g <- do.call(grid.arrange,p.list)
+  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_confusion_matrix_grid_",stage.abv, file.suffix,".png"),g)
   
   #################################
 

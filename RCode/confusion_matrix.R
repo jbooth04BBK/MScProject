@@ -46,71 +46,60 @@ stage.list = c("ext","int1","int2","int3")
 
 # -- end on initialisation
 
+model.names = c("Decision Tree","Random Forest","XGBoost")
 
-model.num <- 1
-model.abv <- model.list[model.num]
-run.num <- 1  
-file.suffix <- sprintf("_%02d", run.num)
 file.text <- "_results_matrix"
-stage.num <- 1
-stage.abv <- stage.list[stage.num]
+
+num.runs <- 5
+
+for(model.num in 1:length(model.list)) {
   
-file.name <- paste0(results.sub.dir, "/", model.abv, file.text, file.suffix, ".csv")
+  model.abv <- model.list[model.num]
+  model.name <- model.names[model.num]
+  
+  for(stage.num in 1:length(stage.list)) {
+    
+    stage.abv <- stage.list[stage.num]
 
-model.run.results <- read.csv(file = paste0(results.sub.dir, "/", model.abv, file.text, file.suffix, ".csv"), header=TRUE, sep=",")
+    for(run.num in 1:num.runs) {
+      
+      file.suffix <- sprintf("_%02d", run.num)
+      
+      print(paste0(model.abv, "_confusion_matrix_",stage.abv, file.suffix,".png"))
+      
+      save_confusion_matrix_plot(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix)
+        
+    }      
+  }
+}
 
-# Change run into a factor
-model.run.results$run <- factor(model.run.results$run)
+num.runs <- 1
+model.num <- 1
 
-# Lets have some tables
-# add columns for c001 accuracy and c002 accuracy
-# c001 accuracy = cm_r1_c1/(cm_r1_c1 + cm_r1_c2)
-model.run.results$c001_accuracy <- with(model.run.results, cm_r1_c1 / (cm_r1_c1 + cm_r1_c2))
-# c002 accuracy = cm_r2_c2/(cm_r2_c1 + cm_r2_c2)
-model.run.results$c002_accuracy <- with(model.run.results, cm_r2_c2 / (cm_r2_c1 + cm_r2_c2))
+for(model.num in 1:length(model.list)) {
+  
+  model.abv <- model.list[model.num]
+  model.name <- model.names[model.num]
+  
+  p.list <- list()
+  
+  for(stage.num in 1:length(stage.list)) {
+    
+    stage.abv <- stage.list[stage.num]
+    
+    for(run.num in 1:num.runs) {
+      
+      file.suffix <- sprintf("_%02d", run.num)
+      
+      print(paste0(model.abv, "_confusion_matrix_",stage.abv, file.suffix,".png"))
 
-accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$accuracy*100)),"%")
-c001.accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$c001_accuracy*100)),"%")
-c002.accuracy.string <- paste0(sprintf("%.2f", (subset(model.run.results, stage == stage.abv)$c002_accuracy*100)),"%")
-
-# cols = models
-# rows = stage
-# values = mean(accuracy)
-
-output.matrix = matrix(nrow = 4, ncol = 4)
-colnames(output.matrix) <- c("Actual","Predicted","Value","Label")
-#rownames(output.matrix) <- c("C001","C002")
-
-output.matrix[1,1] <- "C001"
-output.matrix[1,2] <- "C001"
-output.matrix[1,3] <- subset(model.run.results, stage == stage.abv)$cm_r1_c1
-output.matrix[1,4] <- paste0(output.matrix[1,3]," (",c001.accuracy.string,")")
-output.matrix[2,1] <- "C001"
-output.matrix[2,2] <- "C002"
-output.matrix[2,3] <- subset(model.run.results, stage == stage.abv)$cm_r1_c2
-output.matrix[2,4] <- output.matrix[2,3]
-output.matrix[3,1] <- "C002"
-output.matrix[3,2] <- "C001"
-output.matrix[3,3] <- subset(model.run.results, stage == stage.abv)$cm_r2_c1
-output.matrix[3,4] <- output.matrix[3,3]
-output.matrix[4,1] <- "C002"
-output.matrix[4,2] <- "C002"
-output.matrix[4,3] <- subset(model.run.results, stage == stage.abv)$cm_r2_c2
-output.matrix[4,4] <- paste0(output.matrix[4,3]," (",c002.accuracy.string,")")
-
-output.df <- data.frame(output.matrix)
-output.df$Value <- strtoi(output.df$Value)
-
-plot.title = paste0("Confusion Matrix, Stage: ",stage.abv,", Accuracy = ",accuracy.string)
-p <- ggplot(output.df, aes(x=Predicted, y=Actual)) 
-p <- p + geom_tile(aes(fill = Value))
-p <- p + scale_fill_viridis_c(direction = -1)
-# p <- p + geom_text(aes(label = round(Value, 1)))
-p <- p + xlab("Predicted")
-p <- p + ggtitle(plot.title)
-p <- p + theme_classic()
-p <- p + geom_label(aes(label = Label))
-
-print(p)
-
-# ggsave(paste0(results.sub.dir, "/", "accuracy_table",".png"),table)
+      p.list[[stage.num]] <- plot_confusion_matrix_plot(model.abv, model.name, stage.abv, file.text, results.sub.dir, file.suffix)
+      
+    }      
+  }
+  
+  g <- do.call(grid.arrange,p.list)
+  
+  ggsave(paste0(results.sub.dir, "/", model.abv, "_confusion_matrix_grid_",stage.abv, file.suffix,".png"),g)
+  
+}
