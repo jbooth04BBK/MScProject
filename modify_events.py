@@ -91,28 +91,44 @@ def create_cod2_Summ_attribute_from_cod2_attribute(cnxn, crsr):
 
     '''
 
-    #Add Attributes and values
-    #Not really necessary as will get added below
+    # Add Attributes and values
     parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation", None, "PostMortem")
+
     value_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/", None, "Concept")
 
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", parent_concept_id, "tblFinalDiagnoses", "tblFinalDiagnoses", value_type_concept_id)
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem",
+                                                       parent_concept_id, "tblFinalDiagnoses", "tblFinalDiagnoses",
+                                                       value_type_concept_id)
 
-    event_attribute_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+    event_attribute_type_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                                     "/EventAttribute/Observation/PostMortem/tblFinalDiagnoses",
+                                                                     parent_concept_id, "COD2_SUMM", "COD2_SUMM",
+                                                                     value_type_concept_id)
 
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None, "LookUp")
-    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp", parent_concept_id, "COD2_SUMM", "COD2_SUMM", value_type_concept_id)
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem", None,
+                                                       "LookUp")
+    parent_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp",
+                                                       parent_concept_id, "COD2_SUMM", "COD2_SUMM",
+                                                       value_type_concept_id)
 
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "001", "Unknown", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "002", "known", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "003", "Other", value_type_concept_id)
-    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr, "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM", parent_concept_id, "994", "N/A", value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM",
+                                                      parent_concept_id, "001", "Unknown", value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM",
+                                                      parent_concept_id, "002", "known", value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM",
+                                                      parent_concept_id, "003", "Other", value_type_concept_id)
+    value_concept_id = Create_HAS_Tables.GetConceptID(cnxn, crsr,
+                                                      "/EventAttribute/Observation/PostMortem/LookUp/COD2_SUMM",
+                                                      parent_concept_id, "994", "N/A", value_type_concept_id)
 
-    #Get all Event Attributes of the original type
+    # Get all Event Attributes of the original type
 
-    #Get event_attributes for current event
+    # Get event_attributes for current event
     SQLstring = "SELECT "
-    SQLstring += "  event_attribute_id, " # TODO we seem to have a duplicate CaseID
+    SQLstring += "  event_attribute_id, "  # TODO we seem to have a duplicate CaseID
     SQLstring += "  event_id, "
     SQLstring += "  event_attribute_type_concept_id, "
     SQLstring += "  value_text, "
@@ -148,12 +164,12 @@ def create_cod2_Summ_attribute_from_cod2_attribute(cnxn, crsr):
             code = "003"
             text = "Other"
         else:
-           code = "002"
-           text = "Known"
+            code = "002"
+            text = "Known"
 
-        # print(row, EventAttributeRow.code, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
-        Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id, "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID", code, text)
-
+        Create_HAS_Tables.AddEventAttribute(cnxn, crsr, EventAttributeRow.event_id,
+                                            "Observation/PostMortem/tblFinalDiagnoses", "COD2_SUMM", "COD2_SUMM", "ID",
+                                            code, text)
     print("")
     print("Done!")
 

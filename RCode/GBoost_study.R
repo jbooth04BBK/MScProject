@@ -4,6 +4,37 @@
 # https://rpubs.com/dalekube/XGBoost-Iris-Classification-Example-in-R
 #
 
+# Load libraries
+library(dplyr)
+library(ggplot2) 
+library(ggmosaic)
+library(grid)
+library(gridExtra)
+library(gtable)
+library(viridis)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(lubridate)
+library(reshape2)
+# xgboost added:
+library(xgboost)
+library('DiagrammeR') # NB installed package
+library('rsvg') # NB installed package
+library('DiagrammeRsvg') # NB installed package
+
+# run.seed - random seed for this run
+# rdv.type, - rdv type adjusted or not adjusted (_adj)
+# importance.min, - min importance for feature importance plots (1.5)
+# source.dir,  - location of RDV files
+# results.sub.dir, - location to store results
+# file.suffix, - to distinguidh the files for this run
+# stage.list, - list of post-mortem stages
+# ext.train.index, - training index for external stage
+# int1.train.index,
+# int2.train.index,
+# int3.train.index
+                        
 RunXGBModel <- function(run.seed, 
                         rdv.type, 
                         importance.min, 
@@ -97,20 +128,9 @@ RunXGBModel <- function(run.seed,
     # Transform the two data sets into xgb.Matrix
     xgb.train = xgb.DMatrix(data=train.data,label=train.label)
     xgb.test = xgb.DMatrix(data=test.data,label=test.label)
-
-    # Original values    
-    # params = list(
-    #   booster="gbtree",
-    #   eta=0.3,
-    #   max_depth=6,## NB Was 9
-    #   gamma=0,
-    #   subsample=1,
-    #   colsample_bytree=1,
-    #   objective="multi:softprob",
-    #   eval_metric="mlogloss",
-    #   num_class=num_class
-    # )
     
+    # Stored tuned model results
+
     if (stage == "ext") { 
       eta.value <- 0.3
       max_depth.value <- 6

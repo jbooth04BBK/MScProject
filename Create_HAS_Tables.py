@@ -186,11 +186,12 @@ def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label = None, va
     :param crsr: ODBC Cursor
     :param category: String
     :param code: string
-    :param label: string
-    :param value_type_concept_id: string
-    :return: integer
+    :param label: string - default blank as not required if concept exist
+    :param value_type_concept_id: integer; default is concept id
+    :return: integer; 0 if not been able to create and doesn't exist.
     '''
 
+    # Create SQL string to find concept
     SQLstring = "SELECT "
     SQLstring += "  concept_id "
     SQLstring += "FROM "
@@ -210,7 +211,8 @@ def GetConceptID(cnxn, crsr, category, parent_concept_id, code, label = None, va
         SQLinsert = "INSERT INTO ha_concepts "
         SQLinsert += "  (category, parent_concept_id, code, label, value_type_concept_id) "
         SQLinsert += "VALUES "
-        SQLinsert += "  ('" + category + "', " + str(parent_concept_id) + ", '" + code + "', " + return_null_string(label) + ", " + str(value_type_concept_id) + ")"
+        SQLinsert += "  ('" + category + "', " + str(parent_concept_id) + ", '" + code + "', " + return_null_string(
+            label) + ", " + str(value_type_concept_id) + ")"
         SQLinsert += ";"
 
         crsr.execute(SQLinsert)
