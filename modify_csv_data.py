@@ -329,6 +329,8 @@ def modify_csv(destination_folder, orig_file_name, lr_results, measures):
     #Create XML file
     create_rdvs.create_tdf_file(xml_row, destination_folder, root_file_name, "nan")
 
+    # Create DOC file
+    create_rdvs.create_rdv_doc_file(xml_row, destination_folder, file_name, "Adjusted")
 
 def main():
 
@@ -351,7 +353,7 @@ def main():
 
     # modify_csv(destination_folder, 'rdv_study_int2', lr_results, measures_all)
 
-    # modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
+    modify_csv(destination_folder, 'rdv_study_int3', lr_results, measures_all)
 
     # modify_csv(destination_folder, 'rdv_study_int2_s', lr_results, measures_all)
 

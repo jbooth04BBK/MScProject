@@ -324,6 +324,133 @@ def create_tdf_file(xml_row, destination_folder, table_name, null_string):
     print("")
     print("file closed")
 
+def get_column_description(column_name, csv_type = None):
+
+    # Change underscores to spaces
+    column_description = column_name.capitalize()
+    column_description = column_description.replace("_sy_fi_id","_investigation")
+    column_description = column_description.replace("_histo_sy_hi_id","_histological_investigation")
+    column_description = column_description.replace("_"," ")
+
+    if column_name == "cod2_summ":
+        column_description = "Cause of death summary"
+    elif ":event_id:event_start_date:age_category:age_in_days:gestation_at_delivery_in_days:case_id:include_in_study:".find(":" + column_name + ":") >= 0:
+        pass
+    elif csv_type == 'Original':
+        # split into words
+        words = column_description.split()
+        if words[-1] == "ynid":
+            words[-1] = "(Yes / No / N/A)"
+        elif words[-1] == "length":
+            words[-1] += " (mm)"
+        elif words[-1] == "weight":
+            words[-1] += " (gm)"
+        elif len(words[-1]) > 2 and words[-1][-2] == "id":
+            words[-1] = ""
+        column_description = " ".join(words)
+    else:    # Adjusted
+        words = column_description.split()
+        if words[-1] == "length":
+            words[-1] += " (normalised)"
+        elif words[-1] == "weight":
+            words[-1] += " (normalised)"
+        elif words[0] == "Sex":
+            words[-1] = "(" + words[-1] + ")"
+        elif words[0] == "Season":
+            words[-1] = "(" + words[-1] + ")"
+        elif words[-2] == "ynid":
+            words[-2] = ""
+            if words[-1] == "c001":
+                insert = "yes"
+            elif words[-1] == "c002":
+                insert = "no"
+            elif words[-1] == "c999":
+                insert = "N/A"
+            elif words[-1] == "nan":
+                insert = "NaN"
+            words[-1] = "(" + insert + ")"
+        elif words[-2] == "investigation":
+            if words[-1] == "c001":
+                insert = "Normal"
+            elif words[-1] == "c002":
+                insert = "Abnormal but NOT contributed to death"
+            elif words[-1] == "c003":
+                insert = "Abnormal"
+            elif words[-1] == "c999":
+                insert = "N/A"
+            elif words[-1] == "nan":
+                insert = "NaN"
+            words[-1] = "(" + insert + ")"
+        column_description = " ".join(words)
+
+    return column_description
+
+def create_rdv_doc_file(xml_row, destination_folder, table_name, csv_type = None):
+
+    # Example file name rdv_study_int3_adj.xml
+
+    # Does file exist - if it does rename with time stamp
+    file_ext = "_doc.csv"
+    file_name = table_name
+
+    # If file left over from last run - rename it, so start fresh.
+    if os.path.isfile(destination_folder + file_name + file_ext):
+        new_fname = file_name + "_" + Create_HAS_Tables.file_time_stamp() + file_ext
+        os.rename(destination_folder + file_name + file_ext, destination_folder + new_fname)
+
+    file = open(destination_folder + file_name + file_ext, 'w', newline='', encoding='utf-8')
+    writer = csv.writer(file, quoting=csv.QUOTE_MINIMAL)
+
+    out_row = []
+    out_row.append("Name")
+    out_row.append("Type")
+    out_row.append("Description")
+
+    writer.writerow(out_row)
+
+    for column in xml_row:
+
+        column_name = column[0]
+        value_type_concept_id = column[1]
+
+        if value_type_concept_id == 1:
+            column_type = "text"
+        elif value_type_concept_id == 3:  # INTEGER
+            column_type = "integer"
+        elif value_type_concept_id == 4:  # FLOAT
+            column_type = "double precision"
+        elif value_type_concept_id == 5:  # DATE
+            column_type = "date"
+        elif value_type_concept_id == 6:  # TIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 7:  # DATETIME
+            column_type = "timestamp"
+        elif value_type_concept_id == 8:  # TEXT
+            column_type = "text"
+        elif value_type_concept_id == 9:  # BOOLEAN
+            column_type = "boolean"
+        else:
+            column_type = "error type: " + str(column[1])
+
+        # event_id,event_start_date,sex,age_category,age_in_days,gestation_at_delivery_in_days,case_id,season,body_weight,head_circumference,crown_rump_length,
+        # body_length,foot_length,neglect_ynid,nutrition_nutn_id,dysmorphic_features_ynid,jaundice_ynid,oedema_ynid,pallor_ynid,blood_at_mouth_bmid,
+        # signs_of_trauma_ynid,signs_of_treatment_ynid,cod2_summ,include_in_study
+
+        column_description = get_column_description(column_name, csv_type)
+
+        # print(column_name, column_type, column_description)
+
+        out_row = []
+        out_row.append(column_name)
+        out_row.append(column_type)
+        out_row.append(column_description)
+
+        writer.writerow(out_row)
+
+    file.close()
+    print("")
+    print("file closed")
+
 def create_rdv_selection(cnxn, crsr):
 
     # Select Patient Attributes
@@ -881,6 +1008,9 @@ def create_rdv(cnxn, crsr, file_name, EventPatientAttributes = [], EventPatientA
     #Create XML file
     create_tdf_file(xml_row, destination_folder, file_name, null_string)
 
+    # Create DOC file
+    create_rdv_doc_file(xml_row, destination_folder, file_name, "Original")
+
 def main():
 
     rep_conn_str = (
@@ -903,7 +1033,7 @@ def main():
     # create_rdv_study(rep_cnxn, rep_crsr, "int1_x")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2")
     # create_rdv_study(rep_cnxn, rep_crsr, "int2_s")
-    # create_rdv_study(rep_cnxn, rep_crsr, "int3")
+    create_rdv_study(rep_cnxn, rep_crsr, "int3")
     # create_rdv_study(rep_cnxn, rep_crsr, "int3_s")
 
     rep_cnxn.close()
