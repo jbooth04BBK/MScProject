@@ -330,7 +330,7 @@ def modify_csv(destination_folder, orig_file_name, lr_results, measures):
     create_rdvs.create_tdf_file(xml_row, destination_folder, root_file_name, "nan")
 
     # Create DOC file
-    create_rdvs.create_rdv_doc_file(xml_row, destination_folder, file_name, "Adjusted")
+    create_rdvs.create_rdv_doc_file(xml_row, destination_folder, root_file_name, "Adjusted")
 
 def main():
 
