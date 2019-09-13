@@ -1891,19 +1891,6 @@ def main():
     if gbl_add_profiling:
         print(gbl_add_event_time, gbl_add_att_time)
 
-    # CreateCOD2_SUMMAttributeFromCOD2Attribute(rep_cnxn, rep_crsr)
-
-    # only for Post Mortem Events
-    # CreateAttributeNoOfAttributes(rep_cnxn, rep_crsr)
-
-    # CreateLabEvents(rep_cnxn, rep_crsr)
-
-    # create_reporting_attributes(rep_cnxn, rep_crsr)
-
-    # destination_folder = "I:\\DRE\\Projects\\Research\\0004-Post mortem-AccessDB\\DataExtraction\\CSVs\\"
-
-    # CreateHASCSVFiles(rep_cnxn, rep_crsr, destination_folder)
-
     rep_cnxn.close()
     res_cnxn.close()
 
